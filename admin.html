@@ -84,44 +84,29 @@
       <div id="calendarGrid" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
     </div>
 
-    <!-- ダッシュボードカード集計（クリックで切り替え可能） -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- ダッシュボードカード集計（スマホでも横3つ並ぶように修正） -->
+    <div class="grid grid-cols-3 gap-2 md:gap-4">
       <!-- 選択日の欠席カード -->
-      <div onclick="setFilterMode('absent')" id="cardAbsent" class="bg-white p-4 rounded-2xl shadow-sm border-2 border-indigo-600 flex justify-between items-center cursor-pointer transition group">
-        <div>
-          <p class="text-xs text-slate-500 font-bold mb-1 flex items-center">
-            選択日の欠席 <i class="fa-solid fa-arrow-pointer ml-1 text-[10px] opacity-60"></i>
-          </p>
-          <p class="text-2xl font-black text-rose-600" id="statAbsent">0<span class="text-sm font-normal text-slate-600 ml-1">人</span></p>
-        </div>
-        <div class="w-10 h-10 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-lg">
-          <i class="fa-solid fa-user-xmark"></i>
+      <div onclick="setFilterMode('absent')" id="cardAbsent" class="bg-white p-3 md:p-4 rounded-2xl shadow-sm border-2 border-indigo-600 flex flex-col md:flex-row justify-between items-center cursor-pointer transition group text-center md:text-left">
+        <div class="w-full">
+          <p class="text-[10px] md:text-xs text-slate-500 font-bold mb-1 truncate">選択日の欠席</p>
+          <p class="text-xl md:text-2xl font-black text-rose-600" id="statAbsent">0<span class="text-xs md:text-sm font-normal text-slate-600 ml-0.5">人</span></p>
         </div>
       </div>
 
       <!-- 選択日の遅刻/早退カード -->
-      <div onclick="setFilterMode('late')" id="cardLate" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center cursor-pointer hover:border-indigo-300 transition group">
-        <div>
-          <p class="text-xs text-slate-500 font-bold mb-1 flex items-center">
-            選択日の遅刻/早退 <i class="fa-solid fa-arrow-pointer ml-1 text-[10px] opacity-60"></i>
-          </p>
-          <p class="text-2xl font-black text-amber-500" id="statLate">0<span class="text-sm font-normal text-slate-600 ml-1">人</span></p>
-        </div>
-        <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-lg">
-          <i class="fa-solid fa-clock"></i>
+      <div onclick="setFilterMode('late')" id="cardLate" class="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center cursor-pointer hover:border-indigo-300 transition group text-center md:text-left">
+        <div class="w-full">
+          <p class="text-[10px] md:text-xs text-slate-500 font-bold mb-1 truncate">遅刻/早退</p>
+          <p class="text-xl md:text-2xl font-black text-amber-500" id="statLate">0<span class="text-xs md:text-sm font-normal text-slate-600 ml-0.5">人</span></p>
         </div>
       </div>
 
       <!-- 未確認の連絡カード -->
-      <div onclick="setFilterMode('unread')" id="cardUnread" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center cursor-pointer hover:border-indigo-300 transition group">
-        <div>
-          <p class="text-xs text-slate-500 font-bold mb-1 flex items-center">
-            未確認の連絡（全体） <i class="fa-solid fa-arrow-pointer ml-1 text-[10px] opacity-60"></i>
-          </p>
-          <p class="text-2xl font-black text-indigo-600" id="statUnread">0<span class="text-sm font-normal text-slate-600 ml-1">件</span></p>
-        </div>
-        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-lg">
-          <i class="fa-solid fa-envelope"></i>
+      <div onclick="setFilterMode('unread')" id="cardUnread" class="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center cursor-pointer hover:border-indigo-300 transition group text-center md:text-left">
+        <div class="w-full">
+          <p class="text-[10px] md:text-xs text-slate-500 font-bold mb-1 truncate">未確認</p>
+          <p class="text-xl md:text-2xl font-black text-indigo-600" id="statUnread">0<span class="text-xs md:text-sm font-normal text-slate-600 ml-0.5">件</span></p>
         </div>
       </div>
     </div>
@@ -162,7 +147,7 @@
 
     const ADMIN_PASSWORD = "1234";
     let allFetchedData = []; 
-    let currentFilterMode = "absent"; // "absent" | "late" | "unread"
+    let currentFilterMode = "absent";
     let currentCalendarDate = new Date();
     let selectedDateStr = formatDateKey(new Date());
 
@@ -192,7 +177,7 @@
     };
 
     window.logout = function() {
-      document.getElementById("auth-section").classList.add("hidden");
+      document.getElementById("auth-section").classList.remove("hidden");
       document.getElementById("admin-content").classList.add("hidden");
       document.getElementById("logoutBtn").classList.add("hidden");
       document.getElementById("admin-pass").value = "";
@@ -227,17 +212,11 @@
       const cardLate = document.getElementById("cardLate");
       const cardUnread = document.getElementById("cardUnread");
 
-      [cardAbsent, cardLate, cardUnread].forEach(card => {
-        card.className = "bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center cursor-pointer hover:border-indigo-300 transition group";
-      });
+      const baseClass = "bg-white p-3 md:p-4 rounded-2xl shadow-sm border flex flex-col md:flex-row justify-between items-center cursor-pointer transition group text-center md:text-left ";
 
-      if (currentFilterMode === "absent") {
-        cardAbsent.className = "bg-white p-4 rounded-2xl shadow-sm border-2 border-indigo-600 flex justify-between items-center cursor-pointer transition group";
-      } else if (currentFilterMode === "late") {
-        cardLate.className = "bg-white p-4 rounded-2xl shadow-sm border-2 border-indigo-600 flex justify-between items-center cursor-pointer transition group";
-      } else if (currentFilterMode === "unread") {
-        cardUnread.className = "bg-white p-4 rounded-2xl shadow-sm border-2 border-indigo-600 flex justify-between items-center cursor-pointer transition group";
-      }
+      cardAbsent.className = baseClass + (currentFilterMode === "absent" ? "border-2 border-indigo-600" : "border-slate-200 hover:border-indigo-300");
+      cardLate.className = baseClass + (currentFilterMode === "late" ? "border-2 border-indigo-600" : "border-slate-200 hover:border-indigo-300");
+      cardUnread.className = baseClass + (currentFilterMode === "unread" ? "border-2 border-indigo-600" : "border-slate-200 hover:border-indigo-300");
     }
 
     function startRealtimeListener() {
@@ -324,7 +303,6 @@
         listTitle.innerHTML = `<i class="fa-solid fa-envelope mr-2 text-indigo-600"></i> 未確認の連絡一覧（すべて）`;
       }
 
-      // カードの数値を更新
       const absentCountAll = allFetchedData.filter(d => d.targetDate === selectedDateStr && d.type === "欠席").length;
       const lateCountAll = allFetchedData.filter(d => d.targetDate === selectedDateStr && (d.type === "遅刻" || d.type === "早退")).length;
       const unreadCountAll = allFetchedData.filter(d => d.status === "未確認").length;
