@@ -9,110 +9,157 @@
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 pb-12">
+<body class="bg-slate-50 min-h-screen text-slate-800 pb-12">
 
   <!-- ヘッダー -->
-  <header class="bg-indigo-700 text-white p-4 shadow-md">
-    <div class="max-w-4xl mx-auto flex justify-between items-center">
+  <header class="bg-indigo-600 text-white p-4 shadow-md">
+    <div class="max-w-md mx-auto flex justify-between items-center">
       <div>
-        <h1 class="text-xl font-bold flex items-center">
-          <i class="fa-solid fa-volleyball mr-2 text-amber-300"></i> 部活動 欠席連絡システム
+        <h1 class="text-base font-bold flex items-center">
+          <i class="fa-solid fa-volleyball mr-2 text-amber-300"></i> 部活動 欠席・遅刻連絡
         </h1>
-        <p class="text-xs text-indigo-200 mt-0.5">欠席・遅刻申請フォーム（部員用）</p>
+      </div>
+      <!-- ログイン/ログアウト表示用 -->
+      <div id="auth-header-area">
+        <button onclick="loginWithGoogle()" class="text-xs bg-white text-indigo-600 font-bold px-3 py-1.5 rounded-lg shadow hover:bg-indigo-50 transition flex items-center">
+          <i class="fa-brands fa-google mr-1.5"></i> ログイン
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- 申請フォーム -->
-  <main class="max-w-xl mx-auto mt-6 px-4">
-    <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-      
-      <!-- 送信完了トースト通知（初期非表示） -->
-      <div id="successToast" class="hidden mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm flex items-center gap-3">
-        <i class="fa-solid fa-circle-check text-emerald-500 text-xl"></i>
-        <div>
-          <p class="font-bold">送信が完了しました！</p>
-          <p class="text-xs text-emerald-600">連絡が管理者に届きました。</p>
+  <!-- メインコンテンツ -->
+  <main class="max-w-md mx-auto mt-6 px-4">
+
+    <!-- 未ログイン時の案内 -->
+    <div id="login-required-card" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center mb-6">
+      <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+        <i class="fa-solid fa-user-lock"></i>
+      </div>
+      <h2 class="text-sm font-bold text-slate-800 mb-1">ログインが必要です</h2>
+      <p class="text-xs text-slate-500 mb-4">連絡の送信や、ご自身の送信履歴の確認・取り消しを行うにはGoogleログインしてください。</p>
+      <button onclick="loginWithGoogle()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-sm flex items-center justify-center">
+        <i class="fa-brands fa-google mr-2"></i> Googleアカウントでログイン
+      </button>
+    </div>
+
+    <!-- ログイン済み：連絡フォーム＆履歴エリア（初期は非表示） -->
+    <div id="main-content-area" class="hidden space-y-6">
+
+      <!-- タブ切り替え（「新規連絡」 / 「自分の送信履歴」） -->
+      <div class="flex bg-slate-200 p-1 rounded-xl">
+        <button onclick="switchTab('form')" id="tabFormBtn" class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition">
+          <i class="fa-solid fa-pen-to-square mr-1"></i> 連絡を送る
+        </button>
+        <button onclick="switchTab('history')" id="tabHistoryBtn" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 transition">
+          <i class="fa-solid fa-clock-rotate-left mr-1"></i> 送信履歴・取り消し
+        </button>
+      </div>
+
+      <!-- ① 連絡送信フォーム -->
+      <div id="sectionForm" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h2 class="text-sm font-bold text-slate-700 mb-4 flex items-center pb-2 border-b border-slate-100">
+          <i class="fa-solid fa-paper-plane mr-2 text-indigo-600"></i> 欠席・遅刻連絡フォーム
+        </h2>
+
+        <form onsubmit="submitAbsence(event)" class="space-y-4">
+          <!-- 連絡種別 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">連絡種別 <span class="text-rose-500">*</span></label>
+            <div class="grid grid-cols-3 gap-2">
+              <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 transition has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700">
+                <input type="radio" name="type" value="欠席" checked class="hidden" onchange="toggleType()">
+                <span class="text-xs font-bold">欠席</span>
+              </label>
+              <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 transition has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700">
+                <input type="radio" name="type" value="遅刻" class="hidden" onchange="toggleType()">
+                <span class="text-xs font-bold">遅刻</span>
+              </label>
+              <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 transition has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700">
+                <input type="radio" name="type" value="早退" class="hidden" onchange="toggleType()">
+                <span class="text-xs font-bold">早退</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 対象日 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">対象日 <span class="text-rose-500">*</span></label>
+            <input type="date" id="targetDate" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+
+          <!-- 氏名 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">氏名 <span class="text-rose-500">*</span></label>
+            <input type="text" id="name" placeholder="例: 部活 太郎" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+
+          <!-- 学年 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">学年 <span class="text-rose-500">*</span></label>
+            <select id="grade" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+              <option value="1年">1年生</option>
+              <option value="2年">2年生</option>
+              <option value="3年">3年生</option>
+            </select>
+          </div>
+
+          <!-- 理由カテゴリ -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">理由カテゴリ <span class="text-rose-500">*</span></label>
+            <select id="category" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+              <option value="体調不良・発熱">体調不良・発熱</option>
+              <option value="学校行事・模試">学校行事・模試</option>
+              <option value="私用・冠婚葬祭">私用・冠婚葬祭</option>
+              <option value="通院">通院</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+
+          <!-- 詳細理由 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">詳細理由（任意）</label>
+            <textarea id="detail" rows="2" placeholder="例: 38度の熱があるため病院に行きます" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+          </div>
+
+          <button type="submit" id="submitBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-sm">
+            連絡を送信する
+          </button>
+        </form>
+      </div>
+
+      <!-- ② 自分の送信履歴＆取り消しエリア -->
+      <div id="sectionHistory" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 hidden space-y-3">
+        <h2 class="text-sm font-bold text-slate-700 mb-2 flex items-center pb-2 border-b border-slate-100">
+          <i class="fa-solid fa-clock-rotate-left mr-2 text-indigo-600"></i> あなたが送信した連絡（取り消し可能）
+        </h2>
+        <div id="my-history-list" class="space-y-3">
+          <p class="text-center text-slate-400 text-xs py-6">読み込み中...</p>
         </div>
       </div>
 
-      <h2 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b flex items-center">
-        <i class="fa-solid fa-paper-plane text-indigo-600 mr-2"></i> 欠席・遅刻の連絡を送信
-      </h2>
-
-      <form id="absenceForm" class="space-y-4">
-        <!-- 氏名・学年 -->
-        <div class="grid grid-cols-3 gap-3">
-          <div class="col-span-2">
-            <label class="block text-xs font-bold text-slate-600 mb-1">氏名 <span class="text-rose-500">*</span></label>
-            <input type="text" id="studentName" required placeholder="山田 太郎"
-              class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">学年 <span class="text-rose-500">*</span></label>
-            <select id="grade" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-              <option value="1年">1年</option>
-              <option value="2年">2年</option>
-              <option value="3年">3年</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- 区分（欠席 / 遅刻 / 早退） -->
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">区分 <span class="text-rose-500">*</span></label>
-          <div class="grid grid-cols-3 gap-2">
-            <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-700">
-              <input type="radio" name="type" value="欠席" checked class="mr-1.5 text-indigo-600 focus:ring-indigo-500"> 欠席
-            </label>
-            <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-700">
-              <input type="radio" name="type" value="遅刻" class="mr-1.5 text-indigo-600 focus:ring-indigo-500"> 遅刻
-            </label>
-            <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-700">
-              <input type="radio" name="type" value="早退" class="mr-1.5 text-indigo-600 focus:ring-indigo-500"> 早退
-            </label>
-          </div>
-        </div>
-
-        <!-- 対象日 -->
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">対象日 <span class="text-rose-500">*</span></label>
-          <input type="date" id="targetDate" required
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        </div>
-
-        <!-- 理由分類 -->
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">理由分類 <span class="text-rose-500">*</span></label>
-          <select id="reasonCategory" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-            <option value="体調不良（発熱・風邪等）">体調不良（発熱・風邪等）</option>
-            <option value="怪我・通院">怪我・通院</option>
-            <option value="家庭都合・行事">家庭都合・行事</option>
-            <option value="学業・補習・テスト">学業・補習・テスト</option>
-            <option value="その他">その他</option>
-          </select>
-        </div>
-
-        <!-- 詳細理由 -->
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">詳細理由・メモ</label>
-          <textarea id="reasonDetail" rows="3" placeholder="今朝から38度の熱があるため欠席します。"
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-        </div>
-
-        <!-- 送信ボタン -->
-        <button type="submit" id="submitBtn"
-          class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center">
-          <i class="fa-solid fa-paper-plane mr-2"></i> 連絡を送信する
-        </button>
-      </form>
     </div>
   </main>
+
+  <!-- 完了モーダル -->
+  <div id="successModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white p-6 rounded-2xl max-w-xs w-full text-center space-y-3 shadow-xl">
+      <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-xl">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <h3 class="font-bold text-sm text-slate-800">送信が完了しました</h3>
+      <p class="text-xs text-slate-500">連絡を受け付けました。必要に応じて「送信履歴」から取り消しも行えます。</p>
+      <button onclick="closeModal()" class="w-full py-2 bg-indigo-600 text-white font-bold rounded-xl text-xs hover:bg-indigo-700 transition">
+        閉じる
+      </button>
+    </div>
+  </div>
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addCollection, addDoc, query, where, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAar1cL7AwErIJCBalCTIxndvYu7IW3VVc",
@@ -126,38 +173,220 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-    document.getElementById('targetDate').valueAsDate = new Date();
+    let currentUser = null;
+    let unsubscribeHistory = null;
 
-    document.getElementById('absenceForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      const toast = document.getElementById('successToast');
+    // 初期日付を今日にセット
+    document.getElementById("targetDate").valueAsDate = new Date();
 
-      const data = {
-        name: document.getElementById('studentName').value,
-        grade: document.getElementById('grade').value,
-        type: document.querySelector('input[name="type"]:checked').value,
-        targetDate: document.getElementById('targetDate').value,
-        category: document.getElementById('reasonCategory').value,
-        detail: document.getElementById('reasonDetail').value,
-        status: "未確認",
-        createdAt: new Date().toISOString()
-      };
+    // ログイン状態の監視
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      const headerArea = document.getElementById("auth-header-area");
+      const loginCard = document.getElementById("login-required-card");
+      const mainArea = document.getElementById("main-content-area");
 
-      // 画面上は一瞬でトースト表示＆リセット
-      toast.classList.remove('hidden');
-      document.getElementById('absenceForm').reset();
-      document.getElementById('targetDate').valueAsDate = new Date();
-      
-      setTimeout(() => toast.classList.add('hidden'), 4000);
+      if (user) {
+        // ログイン中の表示
+        headerArea.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-indigo-100 hidden sm:inline">${user.displayName || user.email}</span>
+            <button onclick="logout()" class="text-xs bg-indigo-800 text-indigo-100 px-2.5 py-1 rounded-lg border border-indigo-400/30 hover:bg-indigo-900 transition">
+              ログアウト
+            </button>
+          </div>
+        `;
+        loginCard.classList.add("hidden");
+        mainArea.classList.remove("hidden");
 
-      // バックグラウンドで非同期送信
-      addDoc(collection(db, "absences"), data).catch((err) => {
-        console.error("送信エラー:", err);
-        alert("通信エラーが発生しました。もう一度お試しください。");
-      });
+        // 自動で名前欄にGoogleの表示名を入れる（未入力の場合）
+        if (user.displayName && !document.getElementById("name").value) {
+          document.getElementById("name").value = user.displayName;
+        }
+
+        // 自分の送信履歴をリアルタイム取得開始
+        startMyHistoryListener(user.uid);
+      } else {
+        // 未ログインの表示
+        headerArea.innerHTML = `
+          <button onclick="loginWithGoogle()" class="text-xs bg-white text-indigo-600 font-bold px-3 py-1.5 rounded-lg shadow hover:bg-indigo-50 transition flex items-center">
+            <i class="fa-brands fa-google mr-1.5"></i> ログイン
+          </button>
+        `;
+        loginCard.classList.remove("hidden");
+        mainArea.classList.add("hidden");
+
+        if (unsubscribeHistory) {
+          unsubscribeHistory();
+        }
+      }
     });
+
+    window.loginWithGoogle = async function() {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error("ログインエラー:", error);
+        alert("ログインに失敗しました: " + error.message);
+      }
+    };
+
+    window.logout = async function() {
+      await signOut(auth);
+    };
+
+    window.switchTab = function(tabName) {
+      const formSec = document.getElementById("sectionForm");
+      const historySec = document.getElementById("sectionHistory");
+      const formBtn = document.getElementById("tabFormBtn");
+      const historyBtn = document.getElementById("tabHistoryBtn");
+
+      if (tabName === 'form') {
+        formSec.classList.remove("hidden");
+        historySec.classList.add("hidden");
+        formBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition";
+        historyBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 transition";
+      } else {
+        formSec.classList.add("hidden");
+        historySec.classList.remove("hidden");
+        historyBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition";
+        formBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg text-slate-600 transition";
+      }
+    };
+
+    // 連絡送信
+    window.submitAbsence = async function(event) {
+      event.preventDefault();
+      if (!currentUser) {
+        alert("ログインしてください。");
+        return;
+      }
+
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = true;
+      submitBtn.innerText = "送信中...";
+
+      const type = document.querySelector('input[name="type"]:checked').value;
+      const targetDate = document.getElementById("targetDate").value;
+      const name = document.getElementById("name").value;
+      const grade = document.getElementById("grade").value;
+      const category = document.getElementById("category").value;
+      const detail = document.getElementById("detail").value;
+
+      try {
+        await addDoc(collection(db, "absences"), {
+          uid: currentUser.uid, // ログインしているユーザーのIDを保存
+          userEmail: currentUser.email,
+          type,
+          targetDate,
+          name,
+          grade,
+          category,
+          detail,
+          status: "未確認",
+          createdAt: new Date().toISOString()
+        });
+
+        document.getElementById("successModal").classList.remove("hidden");
+        document.getElementById("detail").value = "";
+      } catch (e) {
+        console.error("送信エラー:", e);
+        alert("送信に失敗しました。");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "連絡を送信する";
+      }
+    };
+
+    window.closeModal = function() {
+      document.getElementById("successModal").classList.add("hidden");
+      switchTab('history'); // 送信後に自動で履歴タブへ切り替え
+    };
+
+    // 自分の送信履歴を監視
+    function startMyHistoryListener(uid) {
+      const q = query(collection(db, "absences"), where("uid", "==", uid));
+      
+      unsubscribeHistory = onSnapshot(q, (snapshot) => {
+        const historyList = document.getElementById("my-history-list");
+        let items = [];
+        snapshot.forEach((docSnap) => {
+          const d = docSnap.data();
+          d.id = docSnap.id;
+          items.push(d);
+        });
+
+        // 新しい順に並び替え
+        items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+        if (items.length === 0) {
+          historyList.innerHTML = `
+            <div class="text-center py-8 text-slate-400">
+              <i class="fa-solid fa-inbox text-3xl mb-2"></i>
+              <p class="text-xs">送信した履歴はありません。</p>
+            </div>`;
+          return;
+        }
+
+        let html = "";
+        items.forEach((item) => {
+          const isChecked = item.status === "確認済み";
+          const typeBadge = item.type === "欠席" 
+            ? `<span class="bg-rose-100 text-rose-700 font-bold text-xs px-2 py-0.5 rounded">欠席</span>`
+            : `<span class="bg-amber-100 text-amber-800 font-bold text-xs px-2 py-0.5 rounded">${item.type}</span>`;
+          
+          const statusBadge = isChecked
+            ? `<span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded font-bold">先生確認済み</span>`
+            : `<span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded font-bold">未確認</span>`;
+
+          html += `
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <div class="flex justify-between items-start">
+                <div class="flex items-center gap-2">
+                  ${typeBadge}
+                  <span class="text-xs font-bold text-slate-700">対象日: ${item.targetDate}</span>
+                </div>
+                ${statusBadge}
+              </div>
+              <div class="text-xs text-slate-600">
+                <p><strong>理由:</strong> ${item.category} ${item.detail ? `(${item.detail})` : ''}</p>
+              </div>
+              <div class="flex justify-end pt-1 border-t border-slate-200/60">
+                <button onclick="cancelMyReport('${item.id}', '${item.status}')" class="text-xs text-rose-600 hover:text-rose-700 font-bold flex items-center bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg transition">
+                  <i class="fa-solid fa-trash-can mr-1"></i> この連絡を取り消す
+                </button>
+              </div>
+            </div>
+          `;
+        });
+
+        historyList.innerHTML = html;
+      });
+    }
+
+    // 連絡の取り消し（削除）
+    window.cancelMyReport = async function(id, status) {
+      if (status === "確認済み") {
+        if (!confirm("この連絡はすでに先生が確認済みです。本当に取り消しますか？")) {
+          return;
+        }
+      } else {
+        if (!confirm("この連絡を取り消しますか？")) {
+          return;
+        }
+      }
+
+      try {
+        await deleteDoc(doc(db, "absences", id));
+        alert("連絡を取り消しました。");
+      } catch (e) {
+        console.error("削除エラー:", e);
+        alert("取り消しに失敗しました。");
+      }
+    };
   </script>
 </body>
 </html>
