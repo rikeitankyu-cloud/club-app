@@ -260,9 +260,7 @@
       const gridContainer = document.getElementById("calendarGrid");
       let html = "";
       
-      // 未確認の連絡がある日付のセットを作成
       const unreadDates = new Set(uniqueLatestData.filter(d => d.status === "未確認").map(d => d.targetDate));
-      // すべての連絡がある日付のセットを作成
       const datesWithReports = new Set(uniqueLatestData.map(d => d.targetDate));
 
       for (let i = firstDayIndex; i > 0; i--) {
@@ -283,16 +281,18 @@
         let btnClass = "py-1.5 rounded-xl transition flex flex-col items-center justify-center relative ";
         if (isSelected) {
           btnClass += "bg-indigo-600 text-white font-bold shadow-md scale-105 z-10";
+        } else if (hasUnread) {
+          // 未確認がある日の背景色を #e6e6fa に変更
+          btnClass += "bg-[#e6e6fa] text-slate-900 font-bold shadow-sm";
         } else if (isToday) {
           btnClass += "bg-indigo-800/80 text-white font-bold border border-indigo-400/40";
         } else {
           btnClass += "hover:bg-indigo-900 text-indigo-100";
         }
 
-        // 未確認がある日は黄色の目立つドット、確認済みの連絡のみの日は通常のインジケーター
         let indicator = `<span class="w-1.5 h-1.5 opacity-0 mt-0.5"></span>`;
         if (hasUnread) {
-          indicator = `<span class="w-2 h-2 bg-amber-300 rounded-full mt-0.5 shadow-[0_0_6px_#fde047]"></span>`;
+          indicator = `<span class="w-1.5 h-1.5 bg-rose-600 rounded-full mt-0.5"></span>`;
         } else if (hasReport) {
           indicator = `<span class="w-1.5 h-1.5 bg-rose-400 rounded-full mt-0.5"></span>`;
         }
@@ -354,7 +354,6 @@
           ? `<span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded font-bold">確認済み</span>`
           : `<span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded font-bold">未確認</span>`;
 
-        // 未確認のカードは白っぽく(bg-white shadow-sm)、確認済みは薄いグレーにして区別
         const cardStyle = isChecked 
           ? "p-4 rounded-xl border border-slate-200 bg-slate-50/50" 
           : "p-4 rounded-xl border-2 border-indigo-200 bg-white shadow-sm";
