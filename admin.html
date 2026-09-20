@@ -53,25 +53,28 @@
   <!-- 2. 状況確認メイン画面 -->
   <main id="admin-content" class="max-w-4xl mx-auto mt-6 px-4 hidden">
     
-    <!-- ステータスバー & 日付フィルター -->
+    <!-- ステータスバー & カレンダー表示エリア -->
     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200">
         <i class="fa-solid fa-bolt text-emerald-500"></i>
         <span class="font-bold">リアルタイム同期中</span>
       </div>
 
-      <!-- 日付選択フィルター -->
+      <!-- カレンダー表示・日付選択コントロール -->
       <div class="flex items-center gap-2">
-        <label for="filterDate" class="text-xs font-bold text-slate-600"><i class="fa-regular fa-calendar mr-1"></i>表示対象日:</label>
+        <button onclick="openCalendarPicker()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl font-bold transition flex items-center shadow-sm">
+          <i class="fa-regular fa-calendar-days mr-1.5"></i> カレンダーを表示
+        </button>
+        <!-- 実際の内部日付選択（普段はスッキリ収納、またはカレンダーボタンから連動） -->
         <input type="date" id="filterDate" onchange="renderFilteredList()"
           class="px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-        <button onclick="setTodayFilter()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-xl font-bold transition">
+        <button onclick="setTodayFilter()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-2 rounded-xl font-bold transition">
           今日
         </button>
       </div>
     </div>
 
-    <!-- ダッシュボードカード集計（選択日のデータで集計） -->
+    <!-- ダッシュボードカード集計 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
         <div>
@@ -93,12 +96,15 @@
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+      <!-- 未確認カードクリックで未確認一覧に切り替え -->
+      <div onclick="filterUnread()" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center cursor-pointer hover:bg-indigo-50/40 hover:border-indigo-300 transition group">
         <div>
-          <p class="text-xs text-slate-500 font-bold mb-1">未確認の連絡（全体）</p>
+          <p class="text-xs text-slate-500 group-hover:text-indigo-600 font-bold mb-1 flex items-center">
+            未確認の連絡（全体） <i class="fa-solid fa-arrow-pointer ml-1 text-[10px] opacity-60"></i>
+          </p>
           <p class="text-2xl font-black text-indigo-600" id="statUnread">0<span class="text-sm font-normal text-slate-600 ml-1">件</span></p>
         </div>
-        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-lg">
+        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-lg group-hover:bg-indigo-600 group-hover:text-white transition">
           <i class="fa-solid fa-envelope"></i>
         </div>
       </div>
@@ -107,7 +113,7 @@
     <!-- 一覧メインエリア -->
     <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
       <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
-        <h2 class="text-sm font-bold text-slate-700 flex items-center">
+        <h2 class="text-sm font-bold text-slate-700 flex items-center" id="listTitle">
           <i class="fa-solid fa-list mr-2 text-indigo-600"></i> 届いている連絡一覧
         </h2>
         <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" id="totalCount">0件</span>
@@ -139,9 +145,9 @@
     const db = getFirestore(app);
 
     const ADMIN_PASSWORD = "1234";
-    let allFetchedData = []; // 取得した全データを保持
+    let allFetchedData = []; 
+    let isUnreadMode = false;
 
-    // ログイン
     window.handleLogin = function(event) {
       event.preventDefault();
       const inputPass = document.getElementById("admin-pass").value;
@@ -150,30 +156,42 @@
         document.getElementById("admin-content").classList.remove("hidden");
         document.getElementById("logoutBtn").classList.remove("hidden");
         
-        // カレンダーの初期値を「今日」に設定
         document.getElementById("filterDate").valueAsDate = new Date();
-        
         startRealtimeListener();
       } else {
         document.getElementById("error-msg").classList.remove("hidden");
       }
     };
 
-    // ログアウト
     window.logout = function() {
       document.getElementById("auth-section").classList.remove("hidden");
       document.getElementById("admin-content").classList.add("hidden");
       document.getElementById("logoutBtn").classList.add("hidden");
       document.getElementById("admin-pass").value = "";
+      isUnreadMode = false;
     };
 
-    // 今日ボタンを押したときの処理
+    // 「カレンダーを表示」ボタンを押したときにカレンダーピッカーを開く
+    window.openCalendarPicker = function() {
+      const dateInput = document.getElementById("filterDate");
+      if (dateInput.showPicker) {
+        dateInput.showPicker(); // モダンブラウザでカレンダーポップアップを直接開く
+      } else {
+        dateInput.focus();
+      }
+    };
+
     window.setTodayFilter = function() {
+      isUnreadMode = false;
       document.getElementById("filterDate").valueAsDate = new Date();
       renderFilteredList();
     };
 
-    // リアルタイムデータ受信監視
+    window.filterUnread = function() {
+      isUnreadMode = true;
+      renderFilteredList();
+    };
+
     function startRealtimeListener() {
       const q = query(collection(db, "absences"), limit(100));
       
@@ -185,25 +203,23 @@
           allFetchedData.push(data);
         });
 
-        // 日付順にソート
-        allFetchedData.sort((a, b) => new Date(b.createdAt || 0) - new Date(b.createdAt || 0));
-
-        // リストと集計を描画
+        allFetchedData.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
         renderFilteredList();
       });
     }
 
-    // 選択された日付で絞り込んで画面を更新
     window.renderFilteredList = function() {
+      isUnreadMode = false; // 日付を変更したら通常モードに戻す
       const selectedDate = document.getElementById("filterDate").value;
       const listContainer = document.getElementById("data-list");
+      const listTitle = document.getElementById("listTitle");
 
-      // 日付が一致するものだけを抽出（日付未選択の場合はすべて）
       const filteredData = selectedDate 
         ? allFetchedData.filter(d => d.targetDate === selectedDate)
         : allFetchedData;
 
-      // ダッシュボード全体の未確認件数は常に全データから算出
+      listTitle.innerHTML = `<i class="fa-solid fa-list mr-2 text-indigo-600"></i> 届いている連絡一覧（${selectedDate || '指定なし'}）`;
+
       const unreadCount = allFetchedData.filter(d => d.status === "未確認").length;
       document.getElementById("statUnread").innerText = unreadCount;
 
@@ -211,7 +227,7 @@
         listContainer.innerHTML = `
           <div class="text-center py-8 text-slate-400">
             <i class="fa-solid fa-inbox text-3xl mb-2"></i>
-            <p class="text-xs">選択された日付（${selectedDate || '指定なし'}）に届いている連絡はありません。</p>
+            <p class="text-xs">選択された日付（${selectedDate}）に届いている連絡はありません。</p>
           </div>`;
         updateStatsForFiltered(filteredData);
         return;
@@ -266,19 +282,16 @@
       updateStatsForFiltered(filteredData);
     };
 
-    // ステータス更新
     window.toggleStatus = async function(id, newStatus) {
       await updateDoc(doc(db, "absences", id), { status: newStatus });
     };
 
-    // 削除処理
     window.deleteItem = async function(id) {
       if (confirm("この連絡を削除してもよろしいですか？")) {
         await deleteDoc(doc(db, "absences", id));
       }
     };
 
-    // 選択された日付ごとの集計
     function updateStatsForFiltered(filteredList) {
       const absentCount = filteredList.filter(d => d.type === "欠席").length;
       const lateCount = filteredList.filter(d => d.type === "遅刻" || d.type === "早退").length;
