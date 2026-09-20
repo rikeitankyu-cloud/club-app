@@ -17,63 +17,73 @@
       <h1 class="text-xl font-bold flex items-center">
         <i class="fa-solid fa-user-shield me-2 text-amber-300"></i> 部活欠席連絡 - 管理者画面
       </h1>
-      <a href="index.html" class="text-xs bg-indigo-800 hover:bg-indigo-900 px-3 py-2 rounded text-white transition">
-        <i class="fa-solid fa-paper-plane me-1"></i> 入力フォームへ
+      <a href="index.html" class="text-xs bg-indigo-800 hover:bg-indigo-900 px-3 py-2 rounded text-white transition flex items-center">
+        <i class="fa-solid fa-paper-plane me-1"></i> 申請フォームへ
       </a>
     </div>
   </header>
 
-  <!-- パスワード認証画面 (初期状態表示) -->
-  <main id="auth-section" class="max-w-md mx-auto mt-12 p-6 bg-white rounded-xl shadow-md border border-slate-200">
-    <h2 class="text-lg font-bold text-center mb-4 text-slate-700">
-      <i class="fa-solid fa-lock me-1 text-indigo-600"></i> 管理者認証
-    </h2>
-    <p class="text-sm text-slate-500 mb-4 text-center">パスワードを入力して管理画面を開いてください。</p>
-    
-    <form id="login-form" onsubmit="checkPassword(event)">
-      <div class="mb-4">
-        <input type="password" id="admin-pass" placeholder="パスワードを入力" required
-          class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+  <!-- 1. パスワード認証画面 -->
+  <main id="auth-section" class="max-w-md mx-auto mt-12 p-6 bg-white rounded-2xl shadow-md border border-slate-200">
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+        <i class="fa-solid fa-lock"></i>
       </div>
-      <p id="error-msg" class="text-red-500 text-xs mb-3 hidden">パスワードが違います。</p>
-      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg transition">
-        ログイン
+      <h2 class="text-lg font-bold text-slate-800">管理者ログイン</h2>
+      <p class="text-xs text-slate-500 mt-1">状況確認ページを開くにはパスワードが必要です</p>
+    </div>
+
+    <form onsubmit="handleLogin(event)">
+      <div class="mb-4">
+        <input type="password" id="admin-pass" placeholder="パスワードを入力 (初期: 1234)" required
+          class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
+        <p id="error-msg" class="text-red-500 text-xs mt-2 hidden text-center">
+          <i class="fa-solid fa-circle-exclamation me-1"></i>パスワードが違います
+        </p>
+      </div>
+      <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition">
+        解除して確認する
       </button>
     </form>
   </main>
 
-  <!-- 管理者メインコンテンツ (認証成功後に表示) -->
-  <main id="admin-content" class="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-xl shadow-md border border-slate-200 hidden">
+  <!-- 2. 状況確認メイン画面 (認証前は非表示) -->
+  <main id="admin-content" class="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-2xl shadow-md border border-slate-200 hidden">
     <div class="flex justify-between items-center mb-6 pb-3 border-b">
-      <h2 class="text-lg font-bold text-slate-700">届いている連絡一覧</h2>
-      <button onclick="logout()" class="text-xs text-slate-500 hover:text-red-600">
+      <div>
+        <h2 class="text-lg font-bold text-slate-800">届いている連絡一覧</h2>
+        <p class="text-xs text-slate-500">部員から提出された欠席・遅刻連絡のデータです。</p>
+      </div>
+      <button onclick="logout()" class="text-xs text-slate-500 hover:text-red-600 transition flex items-center">
         <i class="fa-solid fa-right-from-bracket me-1"></i> ログアウト
       </button>
     </div>
 
-    <!-- ここにデータ一覧を表示するダミーメッセージ -->
-    <div class="bg-slate-50 p-4 rounded-lg border border-dashed border-slate-300 text-center text-slate-500">
-      <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-400"></i>
-      <p class="text-sm">※ ここにFirebaseと連携された連絡データがリアルタイムで表示されます。</p>
+    <!-- データ表示エリア -->
+    <div id="data-list" class="space-y-3">
+      <!-- ※Firebase連携後にここにカード形式で一覧が表示されます -->
+      <div class="bg-slate-50 p-8 rounded-xl border border-dashed border-slate-300 text-center text-slate-500">
+        <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-400"></i>
+        <p class="text-sm">データはまだありません。</p>
+        <p class="text-xs text-slate-400 mt-1">※ Firebaseデータベースと連携すると、リアルタイムでここに部員の連絡が表示されます。</p>
+      </div>
     </div>
   </main>
 
   <script>
-    // 設定したいパスワード（必要に応じて変更してください）
+    // 管理者パスワード (好きな暗号や数字に変更できます)
     const ADMIN_PASSWORD = "1234";
 
-    function checkPassword(event) {
+    function handleLogin(event) {
       event.preventDefault();
       const inputPass = document.getElementById("admin-pass").value;
       const errorMsg = document.getElementById("error-msg");
 
       if (inputPass === ADMIN_PASSWORD) {
-        // パスワード一致時：入力エリアを隠し、管理画面を表示
         document.getElementById("auth-section").classList.add("hidden");
         document.getElementById("admin-content").classList.remove("hidden");
         errorMsg.classList.add("hidden");
       } else {
-        // パスワード不一致時：エラーメッセージ表示
         errorMsg.classList.remove("hidden");
       }
     }
