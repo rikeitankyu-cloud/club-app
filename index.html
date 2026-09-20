@@ -3,70 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>部活動 欠席・遅刻連絡ポータル</title>
+  <title>部活動 欠席・遅刻連絡フォーム</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-100 min-h-screen text-slate-800 pb-12 flex flex-col justify-between">
 
-  <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md">
-    <h1 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
-      <i class="fa-solid fa-paper-plane mr-2 text-blue-600"></i> 部活動 欠席・遅刻連絡フォーム
-    </h1>
+  <!-- ヘッダー -->
+  <header class="bg-indigo-700 text-white p-4 shadow-md">
+    <div class="max-w-md mx-auto flex justify-between items-center">
+      <h1 class="text-lg font-bold flex items-center">
+        <i class="fa-solid fa-volleyball mr-2 text-amber-300"></i> 部活動 欠席連絡システム
+      </h1>
+    </div>
+  </header>
 
-    <form id="absenceForm" class="space-y-4">
-      <div>
-        <label class="block text-slate-700 text-sm font-bold mb-1" for="name">
-          お名前 <span class="text-red-500">*</span>
-        </label>
-        <input type="text" id="name" required placeholder="山田 太郎"
-          class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+  <!-- メインコンテンツ -->
+  <main class="max-w-md w-full mx-auto mt-6 px-4">
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+      <div class="mb-6">
+        <h2 class="text-base font-bold text-slate-800 flex items-center">
+          <i class="fa-solid fa-paper-plane mr-2 text-indigo-600"></i> 欠席・遅刻連絡フォーム
+        </h2>
+        <p class="text-xs text-slate-500 mt-1">部活を休む・遅れる場合はこちらから送信してください。</p>
       </div>
 
-      <!-- 対象日付を追加 -->
-      <div>
-        <label class="block text-slate-700 text-sm font-bold mb-1" for="targetDate">
-          対象日付 <span class="text-red-500">*</span>
-        </label>
-        <input type="date" id="targetDate" required
-          class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-      </div>
+      <form id="absenceForm" class="space-y-4">
+        <!-- 名前 -->
+        <div>
+          <label class="block text-slate-700 text-xs font-bold mb-1" for="name">
+            お名前 <span class="text-rose-500">*</span>
+          </label>
+          <input type="text" id="name" required placeholder="山田 太郎"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
+        </div>
 
-      <div>
-        <label class="block text-slate-700 text-sm font-bold mb-1" for="type">
-          区分 <span class="text-red-500">*</span>
-        </label>
-        <select id="type" required
-          class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="欠席">欠席</option>
-          <option value="遅刻">遅刻</option>
-          <option value="早退">早退</option>
-        </select>
-      </div>
+        <!-- 学年・区分（必要に応じて） -->
+        <div>
+          <label class="block text-slate-700 text-xs font-bold mb-1" for="grade">
+            学年 / 所属
+          </label>
+          <input type="text" id="grade" placeholder="例: 2年 / マネージャー"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
+        </div>
 
-      <div>
-        <label class="block text-slate-700 text-sm font-bold mb-1" for="reason">
-          理由 <span class="text-red-500">*</span>
-        </label>
-        <textarea id="reason" rows="3" required placeholder="体調不良のため（熱37.5度）"
-          class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-      </div>
+        <!-- 対象日付 -->
+        <div>
+          <label class="block text-slate-700 text-xs font-bold mb-1" for="targetDate">
+            対象日付（何日分か） <span class="text-rose-500">*</span>
+          </label>
+          <input type="date" id="targetDate" required
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
+        </div>
 
-      <button type="submit" id="submitBtn"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow transition duration-200">
-        送信する
-      </button>
-    </form>
+        <!-- 連絡区分 -->
+        <div>
+          <label class="block text-slate-700 text-xs font-bold mb-1" for="type">
+            区分 <span class="text-rose-500">*</span>
+          </label>
+          <select id="type" required
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm bg-white">
+            <option value="欠席">欠席</option>
+            <option value="遅刻">遅刻</option>
+            <option value="早退">早退</option>
+          </select>
+        </div>
 
-    <div id="statusMsg" class="mt-4 text-center font-bold hidden"></div>
-  </div>
+        <!-- 理由・詳細 -->
+        <div>
+          <label class="block text-slate-700 text-xs font-bold mb-1" for="detail">
+            理由・詳細 <span class="text-rose-500">*</span>
+          </label>
+          <textarea id="detail" rows="3" required placeholder="体調不良のため（発熱37.5度）"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"></textarea>
+        </div>
 
+        <!-- 送信ボタン -->
+        <button type="submit" id="submitBtn"
+          class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-sm">
+          連絡を送信する
+        </button>
+      </form>
+
+      <!-- 送信完了・エラーメッセージ -->
+      <div id="statusMsg" class="mt-4 text-center font-bold text-xs hidden"></div>
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer class="text-center text-xs text-slate-400 mt-8">
+    <p>&copy; 部活動連絡ポータル</p>
+  </footer>
+
+  <!-- Firebase SDK -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      projectId: "club-app-f9a2f"
+      apiKey: "AIzaSyAar1cL7AwErIJCBalCTIxndvYu7IW3VVc",
+      authDomain: "club-app-6b501.firebaseapp.com",
+      projectId: "club-app-6b501",
+      storageBucket: "club-app-6b501.firebasestorage.app",
+      messagingSenderId: "575608909702",
+      appId: "1:575608909702:web:57394e365b76ba27970607",
+      measurementId: "G-9MWZKWSQTX"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -82,33 +125,37 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      
       submitBtn.disabled = true;
       submitBtn.textContent = "送信中...";
 
       try {
         await addDoc(collection(db, "absences"), {
           name: document.getElementById("name").value,
+          grade: document.getElementById("grade").value || "未設定",
           targetDate: document.getElementById("targetDate").value,
           type: document.getElementById("type").value,
-          reason: document.getElementById("reason").value,
+          detail: document.getElementById("detail").value,
           status: "未確認",
           createdAt: serverTimestamp()
         });
 
-        statusMsg.textContent = "送信が完了しました！";
-        statusMsg.className = "mt-4 text-center font-bold text-green-600";
+        statusMsg.textContent = "送信が完了しました！連絡ありがとうございます。";
+        statusMsg.className = "mt-4 text-center font-bold text-xs text-emerald-600 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200";
         statusMsg.classList.remove("hidden");
         form.reset();
+        
+        // リセット後も日付は今日に戻す
         document.getElementById("targetDate").value = today;
 
       } catch (error) {
         console.error("Error adding document: ", error);
-        statusMsg.textContent = "送信に失敗しました。";
-        statusMsg.className = "mt-4 text-center font-bold text-red-600";
+        statusMsg.textContent = "送信に失敗しました。もう一度お試しください。";
+        statusMsg.className = "mt-4 text-center font-bold text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200";
         statusMsg.classList.remove("hidden");
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = "送信する";
+        submitBtn.textContent = "連絡を送信する";
       }
     });
   </script>
