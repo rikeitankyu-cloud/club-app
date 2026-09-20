@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>部活動 欠席・遅刻連絡フォーム</title>
+  <title>部活動 欠席・遅刻連絡ポータル</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -11,11 +11,10 @@
 
   <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-md">
     <h1 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
-      <i class="fa-solid fa-paper-plane mr-2 text-blue-600"></i> 欠席・遅刻連絡フォーム
+      <i class="fa-solid fa-paper-plane mr-2 text-blue-600"></i> 部活動 欠席・遅刻連絡フォーム
     </h1>
 
     <form id="absenceForm" class="space-y-4">
-      <!-- 名前 -->
       <div>
         <label class="block text-slate-700 text-sm font-bold mb-1" for="name">
           お名前 <span class="text-red-500">*</span>
@@ -24,7 +23,7 @@
           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
 
-      <!-- 対象日付 -->
+      <!-- 対象日付を追加 -->
       <div>
         <label class="block text-slate-700 text-sm font-bold mb-1" for="targetDate">
           対象日付 <span class="text-red-500">*</span>
@@ -33,7 +32,6 @@
           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
 
-      <!-- 区分 -->
       <div>
         <label class="block text-slate-700 text-sm font-bold mb-1" for="type">
           区分 <span class="text-red-500">*</span>
@@ -46,7 +44,6 @@
         </select>
       </div>
 
-      <!-- 理由 -->
       <div>
         <label class="block text-slate-700 text-sm font-bold mb-1" for="reason">
           理由 <span class="text-red-500">*</span>
@@ -68,7 +65,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Firebase設定
     const firebaseConfig = {
       projectId: "club-app-f9a2f"
     };
@@ -76,11 +72,9 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 初期値として今日の日付を設定
-    document.addEventListener("DOMContentLoaded", () => {
-      const today = new Date().toISOString().split("T")[0];
-      document.getElementById("targetDate").value = today;
-    });
+    // デフォルトで今日の日付をセット
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("targetDate").value = today;
 
     const form = document.getElementById("absenceForm");
     const statusMsg = document.getElementById("statusMsg");
@@ -88,7 +82,6 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      
       submitBtn.disabled = true;
       submitBtn.textContent = "送信中...";
 
@@ -106,14 +99,11 @@
         statusMsg.className = "mt-4 text-center font-bold text-green-600";
         statusMsg.classList.remove("hidden");
         form.reset();
-
-        // リセット後も日付は今日に戻す
-        const today = new Date().toISOString().split("T")[0];
         document.getElementById("targetDate").value = today;
 
       } catch (error) {
         console.error("Error adding document: ", error);
-        statusMsg.textContent = "送信に失敗しました。もう一度お試しください。";
+        statusMsg.textContent = "送信に失敗しました。";
         statusMsg.className = "mt-4 text-center font-bold text-red-600";
         statusMsg.classList.remove("hidden");
       } finally {

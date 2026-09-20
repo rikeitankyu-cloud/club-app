@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>欠席連絡管理画面</title>
+  <title>部活動 欠席・遅刻連絡ポータル - 管理者画面</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -22,42 +22,23 @@
   </div>
 
   <!-- 管理画面コンテンツ -->
-  <div id="adminContent" class="max-w-5xl mx-auto hidden space-y-6">
+  <div id="adminContent" class="max-w-4xl mx-auto hidden space-y-4">
     
-    <!-- ヘッダー＆フィルター -->
-    <div class="bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <!-- ヘッダーと日付フィルター -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-xl shadow gap-4">
       <h1 class="text-xl font-bold text-slate-800 flex items-center">
-        <i class="fa-solid fa-list-check mr-2 text-blue-600"></i> 欠席・遅刻連絡 一覧
+        <i class="fa-solid fa-volleyball mr-2 text-amber-500"></i> 連絡一覧
       </h1>
-
-      <!-- 日付絞り込み機能 -->
       <div class="flex items-center space-x-2">
-        <label for="filterDate" class="text-sm font-bold text-slate-600 whitespace-nowrap">日付選択:</label>
-        <input type="date" id="filterDate"
-          class="px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button id="showAllBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-3 py-2 rounded-lg font-bold transition">
-          すべて表示
-        </button>
+        <span class="text-sm font-bold text-slate-600">日付:</span>
+        <input type="date" id="filterDate" class="border px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button id="clearFilter" class="text-xs bg-slate-200 hover:bg-slate-300 px-2 py-1.5 rounded font-bold">全表示</button>
       </div>
     </div>
 
-    <!-- テーブル -->
-    <div class="bg-white rounded-xl shadow-md overflow-x-auto">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="bg-slate-800 text-white text-sm">
-            <th class="p-3">対象日付</th>
-            <th class="p-3">名前</th>
-            <th class="p-3">区分</th>
-            <th class="p-3">理由</th>
-            <th class="p-3">ステータス</th>
-            <th class="p-3 text-center">操作</th>
-          </tr>
-        </thead>
-        <tbody id="listTable" class="divide-y divide-slate-200 text-sm">
-          <!-- JSで自動挿入 -->
-        </tbody>
-      </table>
+    <!-- リスト一覧 -->
+    <div id="listContainer" class="space-y-3">
+      <!-- リアルタイムでここに届きます -->
     </div>
 
   </div>
@@ -73,100 +54,91 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const ADMIN_PASSWORD = "Yasume888"; // ★必要に応じて新しいパスワードに変更してください
+    const ADMIN_PASSWORD = "1234"; // パスワード設定
 
     const loginScreen = document.getElementById("loginScreen");
     const adminContent = document.getElementById("adminContent");
     const passInput = document.getElementById("passInput");
     const loginBtn = document.getElementById("loginBtn");
-    const listTable = document.getElementById("listTable");
+    const listContainer = document.getElementById("listContainer");
     const filterDate = document.getElementById("filterDate");
-    const showAllBtn = document.getElementById("showAllBtn");
+    const clearFilter = document.getElementById("clearFilter");
 
-    let allAbsences = []; // 全データを保持する配列
+    let rawData = [];
 
-    // ログイン機能
     loginBtn.addEventListener("click", () => {
       if (passInput.value === ADMIN_PASSWORD) {
         loginScreen.classList.add("hidden");
         adminContent.classList.remove("hidden");
-        initDataSync();
+        startRealtimeSync();
       } else {
         alert("パスワードが違います");
       }
     });
 
-    // 初期化＆リアルタイム同期設定
-    function initDataSync() {
+    // 爆速リアルタイム同期
+    function startRealtimeSync() {
       const q = query(collection(db, "absences"), orderBy("createdAt", "desc"));
       
       onSnapshot(q, (snapshot) => {
-        allAbsences = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        renderTable();
+        rawData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderUI();
       });
     }
 
-    // テーブル表示処理（フィルター連動）
-    function renderTable() {
-      listTable.innerHTML = "";
-      const selectedDate = filterDate.value;
+    function renderUI() {
+      listContainer.innerHTML = "";
+      const filterVal = filterDate.value;
 
-      // 日付が指定されている場合は絞り込み、指定がなければ全表示
-      const filtered = selectedDate
-        ? allAbsences.filter(item => item.targetDate === selectedDate)
-        : allAbsences;
+      const itemsToDisplay = filterVal 
+        ? rawData.filter(item => item.targetDate === filterVal)
+        : rawData;
 
-      if (filtered.length === 0) {
-        listTable.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">該当するデータがありません</td></tr>`;
+      if (itemsToDisplay.length === 0) {
+        listContainer.innerHTML = `<div class="p-6 text-center text-slate-400 bg-white rounded-xl shadow">該当する連絡はありません</div>`;
         return;
       }
 
-      filtered.forEach(item => {
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-50 transition";
-
+      itemsToDisplay.forEach(item => {
         const isChecked = item.status === "確認済み";
-        const badgeColor = isChecked ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700";
+        const card = document.createElement("div");
+        card.className = `p-4 rounded-xl shadow border-l-4 ${isChecked ? 'bg-slate-50 border-slate-400 opacity-75' : 'bg-white border-blue-500'} flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition`;
 
-        tr.innerHTML = `
-          <td class="p-3 font-semibold text-blue-600">${item.targetDate || '未指定'}</td>
-          <td class="p-3 font-bold text-slate-800">${item.name}</td>
-          <td class="p-3"><span class="px-2 py-1 rounded bg-slate-100 font-bold">${item.type}</span></td>
-          <td class="p-3 text-slate-600 max-w-xs truncate">${item.reason}</td>
-          <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${badgeColor}">${item.status}</span></td>
-          <td class="p-3 text-center space-x-2">
-            <button onclick="toggleStatus('${item.id}', '${item.status}')"
-              class="px-3 py-1 rounded text-xs font-bold text-white ${isChecked ? 'bg-slate-500 hover:bg-slate-600' : 'bg-green-600 hover:bg-green-700'}">
+        card.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">${item.targetDate || '本日'}</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded ${item.type === '欠席' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}">${item.type}</span>
+              <span class="font-bold text-slate-800 text-lg">${item.name}</span>
+            </div>
+            <p class="text-slate-600 text-sm">${item.reason}</p>
+          </div>
+          <div class="flex items-center space-x-2 self-end sm:self-center">
+            <button onclick="toggleStatus('${item.id}', '${item.status}')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white ${isChecked ? 'bg-slate-500 hover:bg-slate-600' : 'bg-green-600 hover:bg-green-700'}">
               ${isChecked ? '未確認に戻す' : '確認完了'}
             </button>
-            <button onclick="deleteItem('${item.id}')"
-              class="px-2 py-1 rounded text-xs font-bold text-red-600 hover:bg-red-50">
+            <button onclick="deleteItem('${item.id}')" class="p-1.5 text-slate-400 hover:text-red-600">
               <i class="fa-solid fa-trash"></i>
             </button>
-          </td>
+          </div>
         `;
-        listTable.appendChild(tr);
+        listContainer.appendChild(card);
       });
     }
 
-    // 日付フィルターイベント
-    filterDate.addEventListener("change", renderTable);
-    showAllBtn.addEventListener("click", () => {
+    filterDate.addEventListener("change", renderUI);
+    clearFilter.addEventListener("click", () => {
       filterDate.value = "";
-      renderTable();
+      renderUI();
     });
 
-    // グローバル関数として公開（HTMLボタンのonclick用）
     window.toggleStatus = async (id, currentStatus) => {
       const newStatus = currentStatus === "確認済み" ? "未確認" : "確認済み";
       await updateDoc(doc(db, "absences", id), { status: newStatus });
     };
 
     window.deleteItem = async (id) => {
-      if (confirm("この記録を削除しますか？")) {
+      if (confirm("本当に削除しますか？")) {
         await deleteDoc(doc(db, "absences", id));
       }
     };
