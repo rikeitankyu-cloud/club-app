@@ -59,13 +59,9 @@
         <div class="flex items-center gap-3">
           <h2 id="calendarMonthTitle" class="text-lg font-bold tracking-wide">2026年 9月</h2>
           <div class="flex items-center bg-indigo-900/80 rounded-lg p-0.5 border border-indigo-700/50">
-            <button onclick="changeMonth(-1)" class="px-2.5 py-1 text-xs hover:bg-indigo-700 rounded-md transition"><i class="fa-solid fa-chevron-left"></i></button>
-            <button onclick="goToToday()" class="px-2 py-1 text-xs hover:bg-indigo-700 rounded-md transition font-bold">今月</button>
-            <button onclick="changeMonth(1)" class="px-2.5 py-1 text-xs hover:bg-indigo-700 rounded-md transition"><i class="fa-solid fa-chevron-right"></i></button>
+            <button onclick="changeMonth(-1)" class="px-3 py-1 text-xs hover:bg-indigo-700 rounded-md transition"><i class="fa-solid fa-chevron-left"></i></button>
+            <button onclick="changeMonth(1)" class="px-3 py-1 text-xs hover:bg-indigo-700 rounded-md transition"><i class="fa-solid fa-chevron-right"></i></button>
           </div>
-        </div>
-        <div class="text-xs text-indigo-300 flex items-center bg-indigo-900/50 px-3 py-1.5 rounded-xl">
-          <i class="fa-solid fa-bolt text-emerald-400 mr-1.5"></i> リアルタイム同期
         </div>
       </div>
 
@@ -86,10 +82,10 @@
 
     <!-- ダッシュボードカード集計 -->
     <div class="grid grid-cols-3 gap-2 md:gap-4">
-      <!-- 選択日の欠席カード -->
+      <!-- 欠席カード -->
       <div onclick="setFilterMode('absent')" id="cardAbsent" class="bg-white p-3 md:p-4 rounded-2xl shadow-sm border-2 border-indigo-600 flex flex-col md:flex-row justify-between items-center cursor-pointer transition group text-center md:text-left">
         <div class="w-full">
-          <p class="text-[10px] md:text-xs text-slate-500 font-bold mb-1 truncate">選択日の欠席</p>
+          <p class="text-[10px] md:text-xs text-slate-500 font-bold mb-1 truncate">欠席</p>
           <p class="text-xl md:text-2xl font-black text-rose-600" id="statAbsent">0<span class="text-xs md:text-sm font-normal text-slate-600 ml-0.5">人</span></p>
         </div>
       </div>
@@ -282,7 +278,6 @@
         if (isSelected) {
           btnClass += "bg-indigo-600 text-white font-bold shadow-md scale-105 z-10";
         } else if (hasUnread) {
-          // 未確認がある日の背景色を #e6e6fa に変更
           btnClass += "bg-[#e6e6fa] text-slate-900 font-bold shadow-sm";
         } else if (isToday) {
           btnClass += "bg-indigo-800/80 text-white font-bold border border-indigo-400/40";
