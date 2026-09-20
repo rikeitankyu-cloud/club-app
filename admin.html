@@ -84,7 +84,7 @@
       <div id="calendarGrid" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
     </div>
 
-    <!-- ダッシュボードカード集計（スマホでも横3つ並ぶように修正） -->
+    <!-- ダッシュボードカード集計 -->
     <div class="grid grid-cols-3 gap-2 md:gap-4">
       <!-- 選択日の欠席カード -->
       <div onclick="setFilterMode('absent')" id="cardAbsent" class="bg-white p-3 md:p-4 rounded-2xl shadow-sm border-2 border-indigo-600 flex flex-col md:flex-row justify-between items-center cursor-pointer transition group text-center md:text-left">
@@ -147,6 +147,7 @@
 
     const ADMIN_PASSWORD = "1234";
     let allFetchedData = []; 
+    let uniqueLatestData = []; // 同日同人の重複を除外した最新データ
     let currentFilterMode = "absent";
     let currentCalendarDate = new Date();
     let selectedDateStr = formatDateKey(new Date());
@@ -220,7 +221,7 @@
     }
 
     function startRealtimeListener() {
-      const q = query(collection(db, "absences"), limit(100));
+      const q = query(collection(db, "absences"), limit(200));
       
       onSnapshot(q, (snapshot) => {
         allFetchedData = [];
@@ -230,7 +231,19 @@
           allFetchedData.push(data);
         });
 
+        // 1. 新しい順に並び替え
         allFetchedData.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+        // 2. 「同じ対象日(targetDate)」かつ「同じ名前(name)」の組み合わせで、一番最初の1件（最新）だけを残す
+        const latestMap = new Map();
+        allFetchedData.forEach(item => {
+          const key = `${item.targetDate}_${item.name}`;
+          if (!latestMap.has(key)) {
+            latestMap.set(key, item);
+          }
+        });
+        uniqueLatestData = Array.from(latestMap.values());
+
         renderCalendar();
         renderFilteredList();
       });
@@ -248,7 +261,8 @@
 
       const gridContainer = document.getElementById("calendarGrid");
       let html = "";
-      const datesWithReports = new Set(allFetchedData.map(d => d.targetDate));
+      // カレンダーのマーク用には「重複除外された最新データ」の日付を使う
+      const datesWithReports = new Set(uniqueLatestData.map(d => d.targetDate));
 
       for (let i = firstDayIndex; i > 0; i--) {
         const dNum = prevLastDay - i + 1;
@@ -292,20 +306,21 @@
 
       let filteredData = [];
 
+      // 絞り込みには重複除外済みの `uniqueLatestData` を使用する
       if (currentFilterMode === "absent") {
-        filteredData = allFetchedData.filter(d => d.targetDate === selectedDateStr && d.type === "欠席");
+        filteredData = uniqueLatestData.filter(d => d.targetDate === selectedDateStr && d.type === "欠席");
         listTitle.innerHTML = `<i class="fa-solid fa-list mr-2 text-indigo-600"></i> 選択日の欠席一覧（${selectedDateStr}）`;
       } else if (currentFilterMode === "late") {
-        filteredData = allFetchedData.filter(d => d.targetDate === selectedDateStr && (d.type === "遅刻" || d.type === "早退"));
+        filteredData = uniqueLatestData.filter(d => d.targetDate === selectedDateStr && (d.type === "遅刻" || d.type === "早退"));
         listTitle.innerHTML = `<i class="fa-solid fa-list mr-2 text-indigo-600"></i> 選択日の遅刻/早退一覧（${selectedDateStr}）`;
       } else if (currentFilterMode === "unread") {
-        filteredData = allFetchedData.filter(d => d.status === "未確認");
+        filteredData = uniqueLatestData.filter(d => d.status === "未確認");
         listTitle.innerHTML = `<i class="fa-solid fa-envelope mr-2 text-indigo-600"></i> 未確認の連絡一覧（すべて）`;
       }
 
-      const absentCountAll = allFetchedData.filter(d => d.targetDate === selectedDateStr && d.type === "欠席").length;
-      const lateCountAll = allFetchedData.filter(d => d.targetDate === selectedDateStr && (d.type === "遅刻" || d.type === "早退")).length;
-      const unreadCountAll = allFetchedData.filter(d => d.status === "未確認").length;
+      const absentCountAll = uniqueLatestData.filter(d => d.targetDate === selectedDateStr && d.type === "欠席").length;
+      const lateCountAll = uniqueLatestData.filter(d => d.targetDate === selectedDateStr && (d.type === "遅刻" || d.type === "早退")).length;
+      const unreadCountAll = uniqueLatestData.filter(d => d.status === "未確認").length;
 
       document.getElementById("statAbsent").innerText = absentCountAll;
       document.getElementById("statLate").innerText = lateCountAll;
