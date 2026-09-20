@@ -26,6 +26,16 @@
   <!-- 申請フォーム -->
   <main class="max-w-xl mx-auto mt-6 px-4">
     <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+      
+      <!-- 送信完了トースト通知（初期非表示） -->
+      <div id="successToast" class="hidden mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-emerald-500 text-xl"></i>
+        <div>
+          <p class="font-bold">送信が完了しました！</p>
+          <p class="text-xs text-emerald-600">連絡が管理者に届きました。</p>
+        </div>
+      </div>
+
       <h2 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b flex items-center">
         <i class="fa-solid fa-paper-plane text-indigo-600 mr-2"></i> 欠席・遅刻の連絡を送信
       </h2>
@@ -99,10 +109,10 @@
     </div>
   </main>
 
-  <!-- Firebase SDK (ES Module) -->
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAar1cL7AwErIJCBalCTIxndvYu7IW3VVc",
@@ -114,50 +124,42 @@
       measurementId: "G-9MWZKWSQTX"
     };
 
-    // Firebase 初期化
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 本日の日付を初期設定
     document.getElementById('targetDate').valueAsDate = new Date();
 
-    // フォーム送信処理
-    document.getElementById('absenceForm').addEventListener('submit', async (e) => {
+    document.getElementById('absenceForm').addEventListener('submit', (e) => {
       e.preventDefault();
+      
       const btn = document.getElementById('submitBtn');
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> 送信中...`;
+      const toast = document.getElementById('successToast');
 
-      try {
-        const name = document.getElementById('studentName').value;
-        const grade = document.getElementById('grade').value;
-        const type = document.querySelector('input[name="type"]:checked').value;
-        const date = document.getElementById('targetDate').value;
-        const category = document.getElementById('reasonCategory').value;
-        const detail = document.getElementById('reasonDetail').value;
+      // 1. フォーム内容を取得
+      const data = {
+        name: document.getElementById('studentName').value,
+        grade: document.getElementById('grade').value,
+        type: document.querySelector('input[name="type"]:checked').value,
+        targetDate: document.getElementById('targetDate').value,
+        category: document.getElementById('reasonCategory').value,
+        detail: document.getElementById('reasonDetail').value,
+        status: "未確認",
+        createdAt: new Date().toISOString() // ブラウザ側で高速生成
+      };
 
-        // Firestoreの "absences" コレクションにデータを保存
-        await addDoc(collection(db, "absences"), {
-          name: name,
-          grade: grade,
-          type: type,
-          targetDate: date,
-          category: category,
-          detail: detail,
-          status: "未確認",
-          createdAt: serverTimestamp()
-        });
+      // 2. 画面上は一瞬で「送信完了」状態にする（高速化）
+      toast.classList.remove('hidden');
+      document.getElementById('absenceForm').reset();
+      document.getElementById('targetDate').valueAsDate = new Date();
+      
+      // 3秒後に通知を自動非表示
+      setTimeout(() => toast.classList.add('hidden'), 4000);
 
-        alert("送信が完了しました！");
-        document.getElementById('absenceForm').reset();
-        document.getElementById('targetDate').valueAsDate = new Date();
-      } catch (error) {
-        console.error("送信エラー: ", error);
-        alert("送信に失敗しました。時間をおいて再度お試しください。");
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i> 連絡を送信する`;
-      }
+      // 3. 非同期でバックグラウンド送信（画面を待たせない）
+      addDoc(collection(db, "absences"), data).catch((err) => {
+        console.error("送信バックグラウンドエラー:", err);
+        alert("通信エラーが発生しました。もう一度お試しください。");
+      });
     });
   </script>
 </body>
