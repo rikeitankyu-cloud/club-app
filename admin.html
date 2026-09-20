@@ -6,7 +6,7 @@
   <title>部活動 欠席・遅刻連絡ポータル - 管理者画面</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome (アイコン) -->
+  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 pb-12">
@@ -20,15 +20,13 @@
         </h1>
         <p class="text-xs text-indigo-200 mt-0.5">連絡・確認連絡ポータル（管理者用）</p>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-xs bg-indigo-800 text-indigo-200 px-3 py-1.5 rounded-lg border border-indigo-500/30">
-          <i class="fa-solid fa-gear mr-1"></i> Firebase設定
-        </span>
-      </div>
+      <button onclick="logout()" id="logoutBtn" class="hidden text-xs bg-indigo-800 hover:bg-indigo-900 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition">
+        <i class="fa-solid fa-right-from-bracket mr-1"></i> ログアウト
+      </button>
     </div>
   </header>
 
-  <!-- 1. パスワード認証画面 (初期表示) -->
+  <!-- 1. パスワード認証画面 -->
   <main id="auth-section" class="max-w-md mx-auto mt-12 p-6 bg-white rounded-2xl shadow-md border border-slate-200">
     <div class="text-center mb-6">
       <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
@@ -52,60 +50,44 @@
     </form>
   </main>
 
-  <!-- 2. 状況確認メイン画面 (認証後に表示) -->
+  <!-- 2. 状況確認メイン画面 -->
   <main id="admin-content" class="max-w-4xl mx-auto mt-6 px-4 hidden">
     
     <!-- ステータスバー -->
-    <div class="bg-amber-50 border border-amber-200 text-amber-800 text-xs px-4 py-2.5 rounded-xl mb-6 flex justify-between items-center">
-      <span><i class="fa-solid fa-circle-info text-amber-500 mr-1.5"></i> ローカルストレージ（デモモード）動作中</span>
-      <button class="text-indigo-600 font-bold hover:underline">設定する</button>
+    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-4 py-2.5 rounded-xl mb-6 flex justify-between items-center">
+      <span><i class="fa-solid fa-wifi text-emerald-500 mr-1.5"></i> Firebase リアルタイムデータベース接続中</span>
     </div>
 
     <!-- ダッシュボードカード集計 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <!-- 本日の欠席 -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
         <div>
           <p class="text-xs text-slate-500 font-bold mb-1">本日の欠席</p>
-          <p class="text-2xl font-black text-rose-600">1<span class="text-sm font-normal text-slate-600 ml-1">人</span></p>
+          <p class="text-2xl font-black text-rose-600" id="statAbsent">0<span class="text-sm font-normal text-slate-600 ml-1">人</span></p>
         </div>
         <div class="w-10 h-10 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-lg">
           <i class="fa-solid fa-user-xmark"></i>
         </div>
       </div>
 
-      <!-- 本日の遅刻/早退 -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
         <div>
           <p class="text-xs text-slate-500 font-bold mb-1">本日の遅刻/早退</p>
-          <p class="text-2xl font-black text-amber-500">1<span class="text-sm font-normal text-slate-600 ml-1">人</span></p>
+          <p class="text-2xl font-black text-amber-500" id="statLate">0<span class="text-sm font-normal text-slate-600 ml-1">人</span></p>
         </div>
         <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-lg">
           <i class="fa-solid fa-clock"></i>
         </div>
       </div>
 
-      <!-- 未確認の連絡 -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
         <div>
           <p class="text-xs text-slate-500 font-bold mb-1">未確認の連絡</p>
-          <p class="text-2xl font-black text-indigo-600">1<span class="text-sm font-normal text-slate-600 ml-1">件</span></p>
+          <p class="text-2xl font-black text-indigo-600" id="statUnread">0<span class="text-sm font-normal text-slate-600 ml-1">件</span></p>
         </div>
         <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-lg">
           <i class="fa-solid fa-envelope"></i>
         </div>
-      </div>
-    </div>
-
-    <!-- 検索バー・フィルタ -->
-    <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-wrap gap-2 items-center justify-between">
-      <div class="flex gap-2">
-        <input type="date" class="border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 focus:outline-none">
-        <button class="bg-slate-100 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs hover:bg-slate-200">本日</button>
-        <button class="text-slate-500 text-xs px-2 py-1.5 hover:text-slate-800">全表示</button>
-      </div>
-      <div class="w-full sm:w-auto">
-        <input type="text" placeholder="氏名で検索..." class="w-full border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none">
       </div>
     </div>
 
@@ -115,84 +97,156 @@
         <h2 class="text-sm font-bold text-slate-700 flex items-center">
           <i class="fa-solid fa-list mr-2 text-indigo-600"></i> 届いている連絡一覧
         </h2>
-        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">2件</span>
+        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" id="totalCount">0件</span>
       </div>
 
-      <!-- 連絡リスト -->
-      <div class="space-y-3">
-        
-        <!-- 連絡カード 1 -->
-        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-          <div class="flex flex-wrap justify-between items-start gap-2 mb-2">
-            <div class="flex items-center gap-2">
-              <span class="bg-rose-100 text-rose-700 font-bold text-xs px-2 py-0.5 rounded">欠席</span>
-              <span class="font-bold text-slate-800 text-sm">佐々木 健太 <span class="text-xs text-slate-500 font-normal">(2年)</span></span>
-              <span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded font-bold">確認済み</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <button class="text-xs border border-slate-300 text-slate-600 px-2.5 py-1 rounded-lg hover:bg-slate-100 flex items-center">
-                <i class="fa-solid fa-rotate-left mr-1"></i> 未確認に戻す
-              </button>
-              <button class="text-slate-400 hover:text-rose-600 text-xs p-1">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </div>
-          </div>
-          <p class="text-xs text-slate-500 mb-1">
-            <i class="fa-regular fa-calendar mr-1"></i>対象日: 2026-09-20 &nbsp; 
-            <i class="fa-solid fa-circle-info mr-1"></i>体調不良（発熱・風邪等）
-          </p>
-          <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-xs text-slate-600">
-            今朝から38度の熱があるため欠席します。
-          </div>
-        </div>
-
-        <!-- 連絡カード 2 -->
-        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-          <div class="flex flex-wrap justify-between items-start gap-2 mb-2">
-            <div class="flex items-center gap-2">
-              <span class="bg-amber-100 text-amber-800 font-bold text-xs px-2 py-0.5 rounded">遅刻</span>
-              <span class="font-bold text-slate-800 text-sm">高橋 葵 <span class="text-xs text-slate-500 font-normal">(1年)</span></span>
-              <span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded font-bold">未確認</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <button class="text-xs bg-indigo-600 text-white font-bold px-3 py-1 rounded-lg hover:bg-indigo-700 flex items-center shadow-sm">
-                <i class="fa-solid fa-check mr-1"></i> 確認済みにする
-              </button>
-              <button class="text-slate-400 hover:text-rose-600 text-xs p-1">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </div>
-          </div>
-          <p class="text-xs text-slate-500 mb-1">
-            <i class="fa-regular fa-calendar mr-1"></i>対象日: 2026-09-20 &nbsp; 
-            <i class="fa-solid fa-circle-info mr-1"></i>怪我・通院
-          </p>
-          <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-xs text-slate-600">
-            病院受診のため、16:30頃合流予定です。
-          </div>
-        </div>
-
+      <!-- リアルタイムデータリスト -->
+      <div id="data-list" class="space-y-3">
+        <p class="text-center text-slate-400 text-xs py-8">読み込み中...</p>
       </div>
     </div>
   </main>
 
-  <script>
-    // 管理者パスワード (変更可能)
+  <!-- Firebase SDK & 処理Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAar1cL7AwErIJCBalCTIxndvYu7IW3VVc",
+      authDomain: "club-app-6b501.firebaseapp.com",
+      projectId: "club-app-6b501",
+      storageBucket: "club-app-6b501.firebasestorage.app",
+      messagingSenderId: "575608909702",
+      appId: "1:575608909702:web:57394e365b76ba27970607",
+      measurementId: "G-9MWZKWSQTX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const ADMIN_PASSWORD = "1234";
 
-    function handleLogin(event) {
+    // ログイン
+    window.handleLogin = function(event) {
       event.preventDefault();
       const inputPass = document.getElementById("admin-pass").value;
-      const errorMsg = document.getElementById("error-msg");
-
       if (inputPass === ADMIN_PASSWORD) {
         document.getElementById("auth-section").classList.add("hidden");
         document.getElementById("admin-content").classList.remove("hidden");
-        errorMsg.classList.add("hidden");
+        document.getElementById("logoutBtn").classList.remove("hidden");
+        startRealtimeListener();
       } else {
-        errorMsg.classList.remove("hidden");
+        document.getElementById("error-msg").classList.remove("hidden");
       }
+    };
+
+    // ログアウト
+    window.logout = function() {
+      document.getElementById("auth-section").classList.remove("hidden");
+      document.getElementById("admin-content").classList.add("hidden");
+      document.getElementById("logoutBtn").classList.add("hidden");
+      document.getElementById("admin-pass").value = "";
+    };
+
+    // リアルタイムデータ受信監視
+    function startRealtimeListener() {
+      const q = query(collection(db, "absences"), orderBy("createdAt", "desc"));
+      
+      onSnapshot(q, (snapshot) => {
+        const listContainer = document.getElementById("data-list");
+        listContainer.innerHTML = "";
+
+        if (snapshot.empty) {
+          listContainer.innerHTML = `
+            <div class="text-center py-8 text-slate-400">
+              <i class="fa-solid fa-inbox text-3xl mb-2"></i>
+              <p class="text-xs">現在、届いている連絡はありません。</p>
+            </div>`;
+          updateStats([]);
+          return;
+        }
+
+        let docsData = [];
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          data.id = docSnap.id;
+          docsData.push(data);
+
+          // カードエレメント作成
+          const card = document.createElement("div");
+          card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50/50";
+
+          const isChecked = data.status === "確認済み";
+          const typeBadge = data.type === "欠席" 
+            ? `<span class="bg-rose-100 text-rose-700 font-bold text-xs px-2 py-0.5 rounded">欠席</span>`
+            : `<span class="bg-amber-100 text-amber-800 font-bold text-xs px-2 py-0.5 rounded">${data.type}</span>`;
+          
+          const statusBadge = isChecked
+            ? `<span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded font-bold">確認済み</span>`
+            : `<span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded font-bold">未確認</span>`;
+
+          const toggleBtn = isChecked
+            ? `<button onclick="toggleStatus('${data.id}', '未確認')" class="text-xs border border-slate-300 text-slate-600 px-2.5 py-1 rounded-lg hover:bg-slate-100 flex items-center">
+                 <i class="fa-solid fa-rotate-left mr-1"></i> 未確認に戻す
+               </button>`
+            : `<button onclick="toggleStatus('${data.id}', '確認済み')" class="text-xs bg-indigo-600 text-white font-bold px-3 py-1 rounded-lg hover:bg-indigo-700 flex items-center shadow-sm">
+                 <i class="fa-solid fa-check mr-1"></i> 確認済みにする
+               </button>`;
+
+          card.innerHTML = `
+            <div class="flex flex-wrap justify-between items-start gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                ${typeBadge}
+                <span class="font-bold text-slate-800 text-sm">${data.name} <span class="text-xs text-slate-500 font-normal">(${data.grade})</span></span>
+                ${statusBadge}
+              </div>
+              <div class="flex items-center gap-2">
+                ${toggleBtn}
+                <button onclick="deleteItem('${data.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 mb-1">
+              <i class="fa-regular fa-calendar mr-1"></i>対象日: ${data.targetDate} &nbsp; 
+              <i class="fa-solid fa-circle-info mr-1"></i>${data.category}
+            </p>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-xs text-slate-600">
+              ${data.detail || '（詳細理由の記入なし）'}
+            </div>
+          `;
+          listContainer.appendChild(card);
+        });
+
+        updateStats(docsData);
+      });
+    }
+
+    // ステータス更新（確認済み/未確認）
+    window.toggleStatus = async function(id, newStatus) {
+      await updateDoc(doc(db, "absences", id), { status: newStatus });
+    };
+
+    // 削除処理
+    window.deleteItem = async function(id) {
+      if (confirm("この連絡を削除してもよろしいですか？")) {
+        await deleteDoc(doc(db, "absences", id));
+      }
+    };
+
+    // カード数字の自動集計
+    function updateStats(dataList) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      
+      const absentCount = dataList.filter(d => d.type === "欠席" && d.targetDate === todayStr).length;
+      const lateCount = dataList.filter(d => (d.type === "遅刻" || d.type === "早退") && d.targetDate === todayStr).length;
+      const unreadCount = dataList.filter(d => d.status === "未確認").length;
+
+      document.getElementById("statAbsent").innerText = absentCount;
+      document.getElementById("statLate").innerText = lateCount;
+      document.getElementById("statUnread").innerText = unreadCount;
+      document.getElementById("totalCount").innerText = `${dataList.length}件`;
     }
   </script>
 </body>

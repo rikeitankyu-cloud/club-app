@@ -3,625 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>部活動 欠席・遅刻連絡アプリ</title>
-  <!-- Tailwind CSS CDN -->
+  <title>部活動 欠席・遅刻連絡ポータル</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome アイコン -->
+  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
-    body { font-family: 'Noto Sans JP', sans-serif; }
-  </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 pb-12">
 
   <!-- ヘッダー -->
-  <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-40">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <i class="fa-solid me-2 fa-volleyball text-2xl text-amber-300"></i>
-        <div>
-          <h1 class="text-xl font-bold leading-tight">部活動 欠席連絡システム</h1>
-          <p class="text-xs text-indigo-200">連絡・確認連絡ポータル</p>
-        </div>
-      </div>
-      <div class="flex items-center space-x-2">
-        <!-- Firebase設定モーダルボタン -->
-        <button id="configBtn" class="bg-indigo-800 hover:bg-indigo-900 text-indigo-100 px-3 py-1.5 rounded text-xs flex items-center transition">
-          <i class="fa-solid fa-gear mr-1.5"></i> Firebase設定
-        </button>
+  <header class="bg-indigo-700 text-white p-4 shadow-md">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold flex items-center">
+          <i class="fa-solid fa-volleyball mr-2 text-amber-300"></i> 部活動 欠席連絡システム
+        </h1>
+        <p class="text-xs text-indigo-200 mt-0.5">欠席・遅刻申請フォーム（部員用）</p>
       </div>
     </div>
   </header>
 
-  <main class="max-w-4xl mx-auto px-4 mt-6">
+  <!-- 申請フォーム -->
+  <main class="max-w-xl mx-auto mt-6 px-4">
+    <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+      <h2 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b flex items-center">
+        <i class="fa-solid fa-paper-plane text-indigo-600 mr-2"></i> 欠席・遅刻の連絡を送信
+      </h2>
 
-    <!-- Firebaseステータスバナー -->
-    <div id="connectionBanner" class="mb-6 p-3 rounded-lg text-xs font-medium flex items-center justify-between transition-colors bg-amber-50 text-amber-800 border border-amber-200">
-      <div class="flex items-center">
-        <span id="statusIndicator" class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500 mr-2 animate-pulse"></span>
-        <span id="statusText">ローカルストレージ（デモモード）で動作中 - Firebaseを設定するとリアルタイム共有が可能になります</span>
-      </div>
-      <button id="quickConfigLink" class="underline text-indigo-600 hover:text-indigo-800 font-bold ml-2">設定する</button>
-    </div>
-
-    
-    <!-- タブ1: 連絡フォーム -->
-    <div id="sectionForm" class="space-y-6">
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <h2 class="text-lg font-bold text-slate-800 border-b pb-3 mb-4 flex items-center">
-          <i class="fa-solid fa-pen-to-square text-indigo-600 mr-2"></i> 欠席・遅刻・早退の申請
-        </h2>
-
-        <form id="absenceForm" class="space-y-4">
-          <!-- 学年・氏名 -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">学年 <span class="text-red-500">*</span></label>
-              <select id="grade" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
-                <option value="">選択してください</option>
-                <option value="1年">1年</option>
-                <option value="2年">2年</option>
-                <option value="3年">3年</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">氏名 <span class="text-red-500">*</span></label>
-              <input type="text" id="studentName" placeholder="例：山田 太郎" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
+      <form id="absenceForm" class="space-y-4">
+        <!-- 氏名・学年 -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-2">
+            <label class="block text-xs font-bold text-slate-600 mb-1">氏名 <span class="text-rose-500">*</span></label>
+            <input type="text" id="studentName" required placeholder="山田 太郎"
+              class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
           </div>
-
-          <!-- 区分・対象日 -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">連絡種別 <span class="text-red-500">*</span></label>
-              <div class="grid grid-cols-3 gap-2">
-                <label class="cursor-pointer">
-                  <input type="radio" name="type" value="欠席" checked class="peer sr-only">
-                  <div class="text-center py-2 border rounded-lg peer-checked:bg-rose-50 peer-checked:border-rose-500 peer-checked:text-rose-700 font-bold text-sm text-slate-600 hover:bg-slate-50 transition">欠席</div>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="type" value="遅刻" class="peer sr-only">
-                  <div class="text-center py-2 border rounded-lg peer-checked:bg-amber-50 peer-checked:border-amber-500 peer-checked:text-amber-700 font-bold text-sm text-slate-600 hover:bg-slate-50 transition">遅刻</div>
-                </label>
-                <label class="cursor-pointer">
-                  <input type="radio" name="type" value="早退" class="peer sr-only">
-                  <div class="text-center py-2 border rounded-lg peer-checked:bg-blue-50 peer-checked:border-blue-500 peer-checked:text-blue-700 font-bold text-sm text-slate-600 hover:bg-slate-50 transition">早退</div>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">対象日付 <span class="text-red-500">*</span></label>
-              <input type="date" id="targetDate" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-          </div>
-
-          <!-- 理由分類 -->
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">理由 <span class="text-red-500">*</span></label>
-            <select id="reasonCategory" required class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
-              <option value="">理由の区分を選択してください</option>
-              <option value="体調不良（発熱・風邪等）">体調不良（発熱・風邪等）</option>
-              <option value="怪我・通院">怪我・通院</option>
-              <option value="家庭の事情">家庭の事情</option>
-              <option value="習い事・塾">習い事・塾</option>
-              <option value="定期テスト勉強・学校行事">定期テスト勉強・学校行事</option>
-              <option value="その他">その他</option>
+            <label class="block text-xs font-bold text-slate-600 mb-1">学年 <span class="text-rose-500">*</span></label>
+            <select id="grade" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="1年">1年</option>
+              <option value="2年">2年</option>
+              <option value="3年">3年</option>
             </select>
           </div>
+        </div>
 
-          <!-- 詳細なメモ -->
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">詳細・補足連絡事項</label>
-            <textarea id="detailReason" rows="3" placeholder="詳細な理由や、遅刻・早退の場合は予定時間（例：16:30頃参加予定）を記入してください" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+        <!-- 区分（欠席 / 遅刻 / 早退） -->
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">区分 <span class="text-rose-500">*</span></label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-700">
+              <input type="radio" name="type" value="欠席" checked class="mr-1.5 text-indigo-600 focus:ring-indigo-500"> 欠席
+            </label>
+            <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-700">
+              <input type="radio" name="type" value="遅刻" class="mr-1.5 text-indigo-600 focus:ring-indigo-500"> 遅刻
+            </label>
+            <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-700">
+              <input type="radio" name="type" value="早退" class="mr-1.5 text-indigo-600 focus:ring-indigo-500"> 早退
+            </label>
           </div>
+        </div>
 
-          <!-- 送信ボタン -->
-          <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow transition flex items-center justify-center">
-            <i class="fa-solid fa-paper-plane mr-2"></i> 連絡を送信する
-          </button>
-        </form>
-      </div>
+        <!-- 対象日 -->
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">対象日 <span class="text-rose-500">*</span></label>
+          <input type="date" id="targetDate" required
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <!-- 理由分類 -->
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">理由分類 <span class="text-rose-500">*</span></label>
+          <select id="reasonCategory" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            <option value="体調不良（発熱・風邪等）">体調不良（発熱・風邪等）</option>
+            <option value="怪我・通院">怪我・通院</option>
+            <option value="家庭都合・行事">家庭都合・行事</option>
+            <option value="学業・補習・テスト">学業・補習・テスト</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+
+        <!-- 詳細理由 -->
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">詳細理由・メモ</label>
+          <textarea id="reasonDetail" rows="3" placeholder="今朝から38度の熱があるため欠席します。"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+        </div>
+
+        <!-- 送信ボタン -->
+        <button type="submit" id="submitBtn"
+          class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center">
+          <i class="fa-solid fa-paper-plane mr-2"></i> 連絡を送信する
+        </button>
+      </form>
     </div>
-
-    <!-- タブ2: 管理者用一覧 -->
-    <div id="sectionAdmin" class="hidden space-y-6">
-      
-      <!-- ダッシュボード・サマリー -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs text-slate-500 font-bold">本日の欠席</p>
-            <p id="todayAbsenceCount" class="text-2xl font-black text-rose-600">0 人</p>
-          </div>
-          <div class="p-3 bg-rose-50 text-rose-500 rounded-lg">
-            <i class="fa-solid fa-user-xmark text-xl"></i>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs text-slate-500 font-bold">本日の遅刻/早退</p>
-            <p id="todayLateCount" class="text-2xl font-black text-amber-600">0 人</p>
-          </div>
-          <div class="p-3 bg-amber-50 text-amber-500 rounded-lg">
-            <i class="fa-solid fa-clock text-xl"></i>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs text-slate-500 font-bold">未確認の連絡</p>
-            <p id="unreadCount" class="text-2xl font-black text-indigo-600">0 件</p>
-          </div>
-          <div class="p-3 bg-indigo-50 text-indigo-500 rounded-lg">
-            <i class="fa-solid fa-envelope text-xl"></i>
-          </div>
-        </div>
-      </div>
-
-      <!-- フィルター・検索 -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-        <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
-          <div class="flex items-center space-x-2 w-full md:w-auto">
-            <i class="fa-solid fa-filter text-slate-400"></i>
-            <input type="date" id="filterDate" class="p-2 border border-slate-300 rounded-lg text-sm">
-            <button id="filterTodayBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-xs font-bold transition">本日</button>
-            <button id="filterClearBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-lg text-xs transition">全表示</button>
-          </div>
-          <div class="w-full md:w-64">
-            <input type="text" id="searchName" placeholder="氏名で検索..." class="w-full p-2 border border-slate-300 rounded-lg text-sm">
-          </div>
-        </div>
-      </div>
-
-      <!-- 一覧リスト -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-          <h3 class="font-bold text-slate-700 flex items-center">
-            <i class="fa-solid fa-list mr-2"></i> 届いている連絡一覧
-          </h3>
-          <span id="listCount" class="text-xs bg-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-bold">0件</span>
-        </div>
-
-        <div id="absenceList" class="divide-y divide-slate-100">
-          <!-- 動的にリストアイテムがここに挿入されます -->
-          <div class="p-8 text-center text-slate-400">
-            <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i>
-            <p class="text-sm">データを読み込み中...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </main>
 
-  <!-- Firebase設定モーダル -->
-  <div id="configModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="text-lg font-bold text-slate-800 flex items-center">
-          <i class="fa-solid fa-fire text-amber-500 mr-2"></i> Firebase 接続設定
-        </h3>
-        <button id="closeModalBtn" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
-      </div>
-
-      <p class="text-xs text-slate-600 leading-relaxed">
-        Firebase Consoleで作成したプロジェクトの <strong>firebaseConfig</strong> をそのまま貼り付けると、クラウド上のデータベース(Firestore)とリアルタイム接続できます。
-      </p>
-
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1">firebaseConfig (JSONオブジェクト)</label>
-        <textarea id="firebaseConfigInput" rows="7" placeholder='{
-  "apiKey": "AIzaSy...",
-  "authDomain": "your-app.firebaseapp.com",
-  "projectId": "your-app",
-  "storageBucket": "your-app.appspot.com",
-  "messagingSenderId": "...",
-  "appId": "..."
-}' class="w-full p-2.5 font-mono text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"></textarea>
-      </div>
-
-      <div class="flex justify-between items-center pt-2">
-        <button id="resetConfigBtn" class="text-xs text-rose-600 hover:underline">設定をクリア（ローカルモードに戻す）</button>
-        <div class="space-x-2">
-          <button id="cancelModalBtn" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition">キャンセル</button>
-          <button id="saveConfigBtn" class="px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow transition">保存して接続</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- JavaScript アプリケーションロジック -->
+  <!-- Firebase SDK (ES Module) -->
   <script type="module">
-    // Firebase SDK (v10.x) モジュールインポート
-    import { initializeApp, deleteApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-    import { 
-      getFirestore, collection, addDoc, onSnapshot, query, orderBy, 
-      doc, updateDoc, deleteDoc, serverTimestamp 
-    } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // 状態管理
-    let db = null;
-    let firebaseApp = null;
-    let unsubscribeSnap = null;
-    let itemsData = [];
-    let isFirebaseActive = false;
+    const firebaseConfig = {
+      apiKey: "AIzaSyAar1cL7AwErIJCBalCTIxndvYu7IW3VVc",
+      authDomain: "club-app-6b501.firebaseapp.com",
+      projectId: "club-app-6b501",
+      storageBucket: "club-app-6b501.firebasestorage.app",
+      messagingSenderId: "575608909702",
+      appId: "1:575608909702:web:57394e365b76ba27970607",
+      measurementId: "G-9MWZKWSQTX"
+    };
 
-    // 初期化：本日の日付をデフォルト設定
-    const todayStr = new Date().toISOString().split('T')[0];
-    document.getElementById('targetDate').value = todayStr;
+    // Firebase 初期化
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    // --- メイン起動ルーチン ---
-    document.addEventListener('DOMContentLoaded', () => {
-      initFirebaseFromStorage();
-      setupEventListeners();
-    });
+    // 本日の日付を初期設定
+    document.getElementById('targetDate').valueAsDate = new Date();
 
-    // Firebaseの初期化（ローカルストレージに設定があれば試行）
-    function initFirebaseFromStorage() {
-      const savedConfig = localStorage.getItem('club_app_firebase_config');
-      if (savedConfig) {
-        try {
-          const config = JSON.parse(savedConfig);
-          if (firebaseApp) deleteApp(firebaseApp);
-          
-          firebaseApp = initializeApp(config);
-          db = getFirestore(firebaseApp);
-          isFirebaseActive = true;
-          
-          updateConnectionStatus(true, 'Firebase Realtime DBに接続中');
-          listenToFirestore();
-        } catch (err) {
-          console.error("Firebase init error:", err);
-          updateConnectionStatus(false, 'Firebase設定の読み込みに失敗しました（ローカルモード動作）');
-          loadLocalData();
-        }
-      } else {
-        updateConnectionStatus(false, 'ローカルストレージ（デモモード）動作中');
-        loadLocalData();
-      }
-    }
-
-    // ステータス表示の更新
-    function updateConnectionStatus(active, text) {
-      const banner = document.getElementById('connectionBanner');
-      const indicator = document.getElementById('statusIndicator');
-      const statusText = document.getElementById('statusText');
-
-      statusText.textContent = text;
-      if (active) {
-        banner.className = 'mb-6 p-3 rounded-lg text-xs font-medium flex items-center justify-between transition-colors bg-emerald-50 text-emerald-800 border border-emerald-200';
-        indicator.className = 'inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2';
-      } else {
-        banner.className = 'mb-6 p-3 rounded-lg text-xs font-medium flex items-center justify-between transition-colors bg-amber-50 text-amber-800 border border-amber-200';
-        indicator.className = 'inline-block w-2.5 h-2.5 rounded-full bg-amber-500 mr-2 animate-pulse';
-      }
-    }
-
-    // Firestoreリアルタイム受信
-    function listenToFirestore() {
-      if (unsubscribeSnap) unsubscribeSnap();
+    // フォーム送信処理
+    document.getElementById('absenceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> 送信中...`;
 
       try {
-        const q = query(collection(db, 'absences'), orderBy('createdAt', 'desc'));
-        unsubscribeSnap = onSnapshot(q, (snapshot) => {
-          itemsData = snapshot.docs.map(docSnap => ({
-            id: docSnap.id,
-            ...docSnap.data()
-          }));
-          renderList();
-          updateSummary();
-        }, (err) => {
-          console.error("Firestore Listen Error:", err);
-          alert("データ取得に失敗しました。権限ルールまたは設定を確認してください。");
+        const name = document.getElementById('studentName').value;
+        const grade = document.getElementById('grade').value;
+        const type = document.querySelector('input[name="type"]:checked').value;
+        const date = document.getElementById('targetDate').value;
+        const category = document.getElementById('reasonCategory').value;
+        const detail = document.getElementById('reasonDetail').value;
+
+        // Firestoreの "absences" コレクションにデータを保存
+        await addDoc(collection(db, "absences"), {
+          name: name,
+          grade: grade,
+          type: type,
+          targetDate: date,
+          category: category,
+          detail: detail,
+          status: "未確認",
+          createdAt: serverTimestamp()
         });
-      } catch (err) {
-        console.error(err);
+
+        alert("送信が完了しました！");
+        document.getElementById('absenceForm').reset();
+        document.getElementById('targetDate').valueAsDate = new Date();
+      } catch (error) {
+        console.error("送信エラー: ", error);
+        alert("送信に失敗しました。時間をおいて再度お試しください。");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i> 連絡を送信する`;
       }
-    }
-
-    // ローカルストレージデータのフォールバック読み込み
-    function loadLocalData() {
-      const local = localStorage.getItem('club_app_local_data');
-      if (local) {
-        try {
-          itemsData = JSON.parse(local);
-        } catch (e) { itemsData = []; }
-      } else {
-        // デモ用のサンプル初期データ
-        itemsData = [
-          {
-            id: 'demo-1',
-            grade: '2年',
-            studentName: '佐々木 健太',
-            type: '欠席',
-            targetDate: todayStr,
-            reasonCategory: '体調不良（発熱・風邪等）',
-            detailReason: '今朝から38度の熱があるため欠席します。',
-            status: '確認済み',
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: 'demo-2',
-            grade: '1年',
-            studentName: '高橋 葵',
-            type: '遅刻',
-            targetDate: todayStr,
-            reasonCategory: '怪我・通院',
-            detailReason: '病院受診のため、16:30頃合流予定です。',
-            status: '未確認',
-            createdAt: new Date().toISOString()
-          }
-        ];
-        saveLocalData();
-      }
-      renderList();
-      updateSummary();
-    }
-
-    function saveLocalData() {
-      localStorage.setItem('club_app_local_data', JSON.stringify(itemsData));
-    }
-
-    // --- イベントリスナー設定 ---
-    function setupEventListeners() {
-      // タブ切り替え
-      const tabForm = document.getElementById('tabForm');
-      const tabAdmin = document.getElementById('tabAdmin');
-      const sectionForm = document.getElementById('sectionForm');
-      const sectionAdmin = document.getElementById('sectionAdmin');
-
-      tabForm.addEventListener('click', () => {
-        tabForm.className = 'flex-1 py-3 font-bold text-center border-b-2 border-indigo-600 text-indigo-600 bg-white rounded-t-lg transition flex items-center justify-center';
-        tabAdmin.className = 'flex-1 py-3 font-bold text-center text-slate-500 hover:text-indigo-600 rounded-t-lg transition flex items-center justify-center';
-        sectionForm.classList.remove('hidden');
-        sectionAdmin.classList.add('hidden');
-      });
-
-      tabAdmin.addEventListener('click', () => {
-        tabAdmin.className = 'flex-1 py-3 font-bold text-center border-b-2 border-indigo-600 text-indigo-600 bg-white rounded-t-lg transition flex items-center justify-center';
-        tabForm.className = 'flex-1 py-3 font-bold text-center text-slate-500 hover:text-indigo-600 rounded-t-lg transition flex items-center justify-center';
-        sectionAdmin.classList.remove('hidden');
-        sectionForm.classList.add('hidden');
-      });
-
-      // フォーム送信
-      document.getElementById('absenceForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const typeEl = document.querySelector('input[name="type"]:checked');
-        const newItem = {
-          grade: document.getElementById('grade').value,
-          studentName: document.getElementById('studentName').value,
-          type: typeEl ? typeEl.value : '欠席',
-          targetDate: document.getElementById('targetDate').value,
-          reasonCategory: document.getElementById('reasonCategory').value,
-          detailReason: document.getElementById('detailReason').value,
-          status: '未確認',
-          createdAt: new Date().toISOString()
-        };
-
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> 送信中...';
-
-        try {
-          if (isFirebaseActive && db) {
-            await addDoc(collection(db, 'absences'), {
-              ...newItem,
-              createdAt: serverTimestamp()
-            });
-          } else {
-            newItem.id = 'local-' + Date.now();
-            itemsData.unshift(newItem);
-            saveLocalData();
-            renderList();
-            updateSummary();
-          }
-
-          alert('連絡を送信しました。');
-          document.getElementById('absenceForm').reset();
-          document.getElementById('targetDate').value = todayStr;
-        } catch (err) {
-          console.error("送信エラー:", err);
-          alert("送信に失敗しました。");
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> 連絡を送信する';
-        }
-      });
-
-      // フィルターイベント
-      document.getElementById('filterDate').addEventListener('change', renderList);
-      document.getElementById('searchName').addEventListener('input', renderList);
-      
-      document.getElementById('filterTodayBtn').addEventListener('click', () => {
-        document.getElementById('filterDate').value = todayStr;
-        renderList();
-      });
-
-      document.getElementById('filterClearBtn').addEventListener('click', () => {
-        document.getElementById('filterDate').value = '';
-        document.getElementById('searchName').value = '';
-        renderList();
-      });
-
-      // モーダル操作
-      const modal = document.getElementById('configModal');
-      const openModal = () => {
-        const currentConfig = localStorage.getItem('club_app_firebase_config') || '';
-        document.getElementById('firebaseConfigInput').value = currentConfig;
-        modal.classList.remove('hidden');
-      };
-      
-      document.getElementById('configBtn').addEventListener('click', openModal);
-      document.getElementById('quickConfigLink').addEventListener('click', openModal);
-      document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
-      document.getElementById('cancelModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
-
-      // 設定保存
-      document.getElementById('saveConfigBtn').addEventListener('click', () => {
-        const inputVal = document.getElementById('firebaseConfigInput').value.trim();
-        if (!inputVal) {
-          alert("Configを入力してください。");
-          return;
-        }
-
-        try {
-          JSON.parse(inputVal); // JSONバリデーション
-          localStorage.setItem('club_app_firebase_config', inputVal);
-          modal.classList.add('hidden');
-          initFirebaseFromStorage();
-          alert("設定を保存し、Firebaseに再接続しました。");
-        } catch (e) {
-          alert("有効なJSON形式ではありません。設定コードをもう一度確認してください。");
-        }
-      });
-
-      // 設定リセット
-      document.getElementById('resetConfigBtn').addEventListener('click', () => {
-        if (confirm("Firebase設定を削除してローカルモードに戻しますか？")) {
-          localStorage.removeItem('club_app_firebase_config');
-          isFirebaseActive = false;
-          if (unsubscribeSnap) unsubscribeSnap();
-          modal.classList.add('hidden');
-          initFirebaseFromStorage();
-        }
-      });
-    }
-
-    // --- 画面描画ロジック ---
-    function renderList() {
-      const container = document.getElementById('absenceList');
-      const filterDateVal = document.getElementById('filterDate').value;
-      const searchNameVal = document.getElementById('searchName').value.trim().toLowerCase();
-
-      // 絞り込み処理
-      let filtered = itemsData.filter(item => {
-        let matchDate = true;
-        let matchName = true;
-
-        if (filterDateVal) {
-          matchDate = item.targetDate === filterDateVal;
-        }
-        if (searchNameVal) {
-          matchName = item.studentName && item.studentName.toLowerCase().includes(searchNameVal);
-        }
-
-        return matchDate && matchName;
-      });
-
-      document.getElementById('listCount').textContent = `${filtered.length}件`;
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="p-8 text-center text-slate-400">
-            <i class="fa-regular fa-folder-open text-3xl mb-2"></i>
-            <p class="text-sm">該当する連絡事項はありません</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = filtered.map(item => {
-        // バッジ生成
-        let badgeColor = 'bg-slate-100 text-slate-700';
-        if (item.type === '欠席') badgeColor = 'bg-rose-100 text-rose-700 border-rose-200';
-        if (item.type === '遅刻') badgeColor = 'bg-amber-100 text-amber-700 border-amber-200';
-        if (item.type === '早退') badgeColor = 'bg-blue-100 text-blue-700 border-blue-200';
-
-        const isChecked = item.status === '確認済み';
-        const statusBadge = isChecked 
-          ? `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs px-2 py-0.5 rounded font-bold">確認済み</span>`
-          : `<span class="bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs px-2 py-0.5 rounded font-bold animate-pulse">未確認</span>`;
-
-        return `
-          <div class="p-4 hover:bg-slate-50 transition flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div class="space-y-1">
-              <div class="flex items-center space-x-2">
-                <span class="text-xs border px-2 py-0.5 rounded font-bold ${badgeColor}">${item.type || '欠席'}</span>
-                <span class="font-bold text-slate-800 text-base">${escapeHtml(item.studentName)}</span>
-                <span class="text-xs text-slate-500">(${item.grade})</span>
-                ${statusBadge}
-              </div>
-              <div class="text-xs text-slate-600 flex items-center space-x-3">
-                <span><i class="fa-regular fa-calendar mr-1"></i>対象日: <strong>${item.targetDate}</strong></span>
-                <span><i class="fa-solid fa-tag mr-1"></i>${escapeHtml(item.reasonCategory)}</span>
-              </div>
-              ${item.detailReason ? `<p class="text-xs text-slate-500 bg-slate-100 p-2 rounded mt-1.5 border border-slate-200">${escapeHtml(item.detailReason)}</p>` : ''}
-            </div>
-
-            <!-- 操作ボタン -->
-            <div class="flex items-center space-x-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-              <button onclick="toggleStatus('${item.id}', '${item.status}')" class="text-xs px-3 py-1.5 rounded border transition ${isChecked ? 'bg-white border-slate-300 text-slate-600 hover:bg-slate-100' : 'bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 font-bold'}">
-                ${isChecked ? '<i class="fa-solid fa-rotate-left mr-1"></i>未確認に戻す' : '<i class="fa-solid fa-check mr-1"></i>確認済みにする'}
-              </button>
-              <button onclick="deleteItem('${item.id}')" class="text-xs px-2.5 py-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded transition" title="削除">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // 集計サマリーの更新
-    function updateSummary() {
-      const todayAbsences = itemsData.filter(i => i.targetDate === todayStr && i.type === '欠席').length;
-      const todayLates = itemsData.filter(i => i.targetDate === todayStr && (i.type === '遅刻' || i.type === '早退')).length;
-      const unreads = itemsData.filter(i => i.status !== '確認済み').length;
-
-      document.getElementById('todayAbsenceCount').textContent = `${todayAbsences} 人`;
-      document.getElementById('todayLateCount').textContent = `${todayLates} 人`;
-      document.getElementById('unreadCount').textContent = `${unreads} 件`;
-    }
-
-    // ステータス切り替え（グローバル定義）
-    window.toggleStatus = async (id, currentStatus) => {
-      const newStatus = currentStatus === '確認済み' ? '未確認' : '確認済み';
-
-      if (isFirebaseActive && db) {
-        try {
-          await updateDoc(doc(db, 'absences', id), { status: newStatus });
-        } catch (e) {
-          console.error("更新エラー:", e);
-        }
-      } else {
-        const item = itemsData.find(i => i.id === id);
-        if (item) {
-          item.status = newStatus;
-          saveLocalData();
-          renderList();
-          updateSummary();
-        }
-      }
-    };
-
-    // アイテム削除（グローバル定義）
-    window.deleteItem = async (id) => {
-      if (!confirm("この連絡記録を削除してもよろしいですか？")) return;
-
-      if (isFirebaseActive && db) {
-        try {
-          await deleteDoc(doc(db, 'absences', id));
-        } catch (e) {
-          console.error("削除エラー:", e);
-        }
-      } else {
-        itemsData = itemsData.filter(i => i.id !== id);
-        saveLocalData();
-        renderList();
-        updateSummary();
-      }
-    };
-
-    // HTMLエスケープ関数
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/[&<>"']/g, function(m) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-      });
-    }
+    });
   </script>
 </body>
 </html>
