@@ -51,31 +51,43 @@
   </main>
 
   <!-- 2. 状況確認メイン画面 -->
-  <main id="admin-content" class="max-w-4xl mx-auto mt-6 px-4 hidden">
+  <main id="admin-content" class="max-w-4xl mx-auto mt-6 px-4 hidden space-y-6">
     
-    <!-- ステータスバー & カレンダー表示エリア -->
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200">
-        <i class="fa-solid fa-bolt text-emerald-500"></i>
-        <span class="font-bold">リアルタイム同期中</span>
+    <!-- LINE風 インラインカレンダーウィジェット -->
+    <div class="bg-indigo-950 text-white p-5 rounded-2xl shadow-md border border-indigo-900">
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-3">
+          <h2 id="calendarMonthTitle" class="text-lg font-bold tracking-wide">2026年 9月</h2>
+          <div class="flex items-center bg-indigo-900/80 rounded-lg p-0.5 border border-indigo-700/50">
+            <button onclick="changeMonth(-1)" class="px-2.5 py-1 text-xs hover:bg-indigo-700 rounded-md transition"><i class="fa-solid fa-chevron-left"></i></button>
+            <button onclick="goToToday()" class="px-2 py-1 text-xs hover:bg-indigo-700 rounded-md transition font-bold">今月</button>
+            <button onclick="changeMonth(1)" class="px-2.5 py-1 text-xs hover:bg-indigo-700 rounded-md transition"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="text-xs text-indigo-300 flex items-center bg-indigo-900/50 px-3 py-1.5 rounded-xl">
+          <i class="fa-solid fa-bolt text-emerald-400 mr-1.5"></i> リアルタイム同期
+        </div>
       </div>
 
-      <!-- カレンダー表示・日付選択コントロール -->
-      <div class="flex items-center gap-2">
-        <button onclick="openCalendarPicker()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl font-bold transition flex items-center shadow-sm">
-          <i class="fa-regular fa-calendar-days mr-1.5"></i> カレンダーを表示
-        </button>
-        <!-- 実際の内部日付選択（普段はスッキリ収納、またはカレンダーボタンから連動） -->
-        <input type="date" id="filterDate" onchange="renderFilteredList()"
-          class="px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
-        <button onclick="setTodayFilter()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-2 rounded-xl font-bold transition">
-          今日
-        </button>
+      <!-- 曜日ヘッダー -->
+      <div class="grid grid-cols-7 text-center text-xs font-bold text-indigo-300 mb-2">
+        <span class="text-rose-400">日</span>
+        <span>月</span>
+        <span>火</span>
+        <span>水</span>
+        <span>木</span>
+        <span>金</span>
+        <span class="text-sky-400">土</span>
+      </div>
+
+      <!-- 日付グリッド (JavaScriptで動的生成) -->
+      <div id="calendarGrid" class="grid grid-cols-7 gap-1 text-center text-sm">
+        <!-- JSで埋め込み -->
       </div>
     </div>
 
     <!-- ダッシュボードカード集計 -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
         <div>
           <p class="text-xs text-slate-500 font-bold mb-1">選択日の欠席</p>
@@ -148,6 +160,17 @@
     let allFetchedData = []; 
     let isUnreadMode = false;
 
+    // カレンダー表示用の現在選択・表示月管理
+    let currentCalendarDate = new Date();
+    let selectedDateStr = formatDateKey(new Date()); // 初期値は今日
+
+    function formatDateKey(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
     window.handleLogin = function(event) {
       event.preventDefault();
       const inputPass = document.getElementById("admin-pass").value;
@@ -156,7 +179,8 @@
         document.getElementById("admin-content").classList.remove("hidden");
         document.getElementById("logoutBtn").classList.remove("hidden");
         
-        document.getElementById("filterDate").valueAsDate = new Date();
+        selectedDateStr = formatDateKey(new Date());
+        currentCalendarDate = new Date();
         startRealtimeListener();
       } else {
         document.getElementById("error-msg").classList.remove("hidden");
@@ -164,26 +188,32 @@
     };
 
     window.logout = function() {
-      document.getElementById("auth-section").classList.remove("hidden");
+      document.getElementById("auth-section").classList.add("hidden");
       document.getElementById("admin-content").classList.add("hidden");
       document.getElementById("logoutBtn").classList.add("hidden");
       document.getElementById("admin-pass").value = "";
       isUnreadMode = false;
     };
 
-    // 「カレンダーを表示」ボタンを押したときにカレンダーピッカーを開く
-    window.openCalendarPicker = function() {
-      const dateInput = document.getElementById("filterDate");
-      if (dateInput.showPicker) {
-        dateInput.showPicker(); // モダンブラウザでカレンダーポップアップを直接開く
-      } else {
-        dateInput.focus();
-      }
+    // 月の切り替え
+    window.changeMonth = function(direction) {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
+      renderCalendar();
     };
 
-    window.setTodayFilter = function() {
+    window.goToToday = function() {
+      currentCalendarDate = new Date();
+      selectedDateStr = formatDateKey(new Date());
       isUnreadMode = false;
-      document.getElementById("filterDate").valueAsDate = new Date();
+      renderCalendar();
+      renderFilteredList();
+    };
+
+    // 日付を選択したときの処理
+    window.selectDate = function(dateStr) {
+      selectedDateStr = dateStr;
+      isUnreadMode = false;
+      renderCalendar();
       renderFilteredList();
     };
 
@@ -204,21 +234,87 @@
         });
 
         allFetchedData.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        renderCalendar();
         renderFilteredList();
       });
     }
 
+    // LINE風カレンダーの描画
+    function renderCalendar() {
+      const year = currentCalendarDate.getFullYear();
+      const month = currentCalendarDate.getMonth();
+      
+      document.getElementById("calendarMonthTitle").innerText = `${year}年 ${month + 1}月`;
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      const prevLastDay = new Date(year, month, 0).getDate();
+
+      const gridContainer = document.getElementById("calendarGrid");
+      let html = "";
+
+      // 連絡がある日付のセットを作成（ドットを表示するため）
+      const datesWithReports = new Set(allFetchedData.map(d => d.targetDate));
+
+      // 前月のはみ出し部分
+      for (let i = firstDayIndex; i > 0; i--) {
+        const dNum = prevLastDay - i + 1;
+        html += `<div class="py-2 text-indigo-500/40 text-xs">${dNum}</div>`;
+      }
+
+      // 当月の日付
+      for (let i = 1; i <= lastDay; i++) {
+        const mStr = String(month + 1).padStart(2, '0');
+        const dStr = String(i).padStart(2, '0');
+        const thisDateStr = `${year}-${mStr}-${dStr}`;
+
+        const isSelected = (thisDateStr === selectedDateStr && !isUnreadMode);
+        const isToday = (thisDateStr === formatDateKey(new Date()));
+        const hasReport = datesWithReports.has(thisDateStr);
+
+        let btnClass = "py-1.5 rounded-xl transition flex flex-col items-center justify-center relative ";
+        if (isSelected) {
+          btnClass += "bg-indigo-600 text-white font-bold shadow-md scale-105 z-10";
+        } else if (isToday) {
+          btnClass += "bg-indigo-800/80 text-white font-bold border border-indigo-400/40";
+        } else {
+          btnClass += "hover:bg-indigo-900 text-indigo-100";
+        }
+
+        // 連絡がある日は下に小さなドットを表示
+        let indicator = "";
+        if (hasReport) {
+          const dotColor = isSelected ? "bg-amber-300" : "bg-rose-400";
+          indicator = `<span class="w-1.5 h-1.5 ${dotColor} rounded-full mt-0.5"></span>`;
+        } else {
+          indicator = `<span class="w-1.5 h-1.5 opacity-0 mt-0.5"></span>`;
+        }
+
+        html += `
+          <button onclick="selectDate('${thisDateStr}')" class="${btnClass}">
+            <span class="text-xs leading-none">${i}</span>
+            ${indicator}
+          </button>
+        `;
+      }
+
+      gridContainer.innerHTML = html;
+    }
+
+    // リストの描画
     window.renderFilteredList = function() {
-      isUnreadMode = false; // 日付を変更したら通常モードに戻す
-      const selectedDate = document.getElementById("filterDate").value;
       const listContainer = document.getElementById("data-list");
       const listTitle = document.getElementById("listTitle");
 
-      const filteredData = selectedDate 
-        ? allFetchedData.filter(d => d.targetDate === selectedDate)
-        : allFetchedData;
+      let filteredData = [];
 
-      listTitle.innerHTML = `<i class="fa-solid fa-list mr-2 text-indigo-600"></i> 届いている連絡一覧（${selectedDate || '指定なし'}）`;
+      if (isUnreadMode) {
+        filteredData = allFetchedData.filter(d => d.status === "未確認");
+        listTitle.innerHTML = `<i class="fa-solid fa-envelope text-indigo-600 mr-2"></i> 未確認の連絡一覧（すべて） <button onclick="goToToday()" class="ml-3 text-xs text-indigo-600 underline font-normal">← 今日・カレンダーに戻す</button>`;
+      } else {
+        filteredData = allFetchedData.filter(d => d.targetDate === selectedDateStr);
+        listTitle.innerHTML = `<i class="fa-solid fa-list mr-2 text-indigo-600"></i> 届いている連絡一覧（${selectedDateStr}）`;
+      }
 
       const unreadCount = allFetchedData.filter(d => d.status === "未確認").length;
       document.getElementById("statUnread").innerText = unreadCount;
@@ -227,7 +323,7 @@
         listContainer.innerHTML = `
           <div class="text-center py-8 text-slate-400">
             <i class="fa-solid fa-inbox text-3xl mb-2"></i>
-            <p class="text-xs">選択された日付（${selectedDate}）に届いている連絡はありません。</p>
+            <p class="text-xs">${isUnreadMode ? '現在、未確認の連絡はありません。' : `選択された日付（${selectedDateStr}）に届いている連絡はありません。`}</p>
           </div>`;
         updateStatsForFiltered(filteredData);
         return;
