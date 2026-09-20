@@ -3,104 +3,116 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>部活動 欠席・遅刻連絡フォーム</title>
+  <title>部活動 欠席・遅刻連絡ポータル</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 pb-12 flex flex-col justify-between">
+<body class="bg-slate-100 min-h-screen text-slate-800 pb-12">
 
   <!-- ヘッダー -->
   <header class="bg-indigo-700 text-white p-4 shadow-md">
-    <div class="max-w-md mx-auto flex justify-between items-center">
-      <h1 class="text-lg font-bold flex items-center">
-        <i class="fa-solid fa-volleyball mr-2 text-amber-300"></i> 部活動 欠席連絡システム
-      </h1>
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold flex items-center">
+          <i class="fa-solid fa-volleyball mr-2 text-amber-300"></i> 部活動 欠席連絡システム
+        </h1>
+        <p class="text-xs text-indigo-200 mt-0.5">欠席・遅刻申請フォーム（部員用）</p>
+      </div>
     </div>
   </header>
 
-  <!-- メインコンテンツ -->
-  <main class="max-w-md w-full mx-auto mt-6 px-4">
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-      <div class="mb-6">
-        <h2 class="text-base font-bold text-slate-800 flex items-center">
-          <i class="fa-solid fa-paper-plane mr-2 text-indigo-600"></i> 欠席・遅刻連絡フォーム
-        </h2>
-        <p class="text-xs text-slate-500 mt-1">部活を休む・遅れる場合はこちらから送信してください。</p>
+  <!-- 申請フォーム -->
+  <main class="max-w-xl mx-auto mt-6 px-4">
+    <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+      
+      <!-- 送信完了トースト通知（初期非表示） -->
+      <div id="successToast" class="hidden mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-emerald-500 text-xl"></i>
+        <div>
+          <p class="font-bold">送信が完了しました！</p>
+          <p class="text-xs text-emerald-600">連絡が管理者に届きました。</p>
+        </div>
       </div>
 
+      <h2 class="text-base font-bold text-slate-800 mb-4 pb-2 border-b flex items-center">
+        <i class="fa-solid fa-paper-plane text-indigo-600 mr-2"></i> 欠席・遅刻の連絡を送信
+      </h2>
+
       <form id="absenceForm" class="space-y-4">
-        <!-- 名前 -->
-        <div>
-          <label class="block text-slate-700 text-xs font-bold mb-1" for="name">
-            お名前 <span class="text-rose-500">*</span>
-          </label>
-          <input type="text" id="name" required placeholder="山田 太郎"
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
+        <!-- 氏名・学年 -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-2">
+            <label class="block text-xs font-bold text-slate-600 mb-1">氏名 <span class="text-rose-500">*</span></label>
+            <input type="text" id="studentName" required placeholder="山田 太郎"
+              class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">学年 <span class="text-rose-500">*</span></label>
+            <select id="grade" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+              <option value="1年">1年</option>
+              <option value="2年">2年</option>
+              <option value="3年">3年</option>
+            </select>
+          </div>
         </div>
 
-        <!-- 学年・区分（必要に応じて） -->
+        <!-- 区分（欠席 / 遅刻 / 早退） -->
         <div>
-          <label class="block text-slate-700 text-xs font-bold mb-1" for="grade">
-            学年 / 所属
-          </label>
-          <input type="text" id="grade" placeholder="例: 2年 / マネージャー"
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
+          <label class="block text-xs font-bold text-slate-600 mb-1">区分 <span class="text-rose-500">*</span></label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-700">
+              <input type="radio" name="type" value="欠席" checked class="mr-1.5 text-indigo-600 focus:ring-indigo-500"> 欠席
+            </label>
+            <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-700">
+              <input type="radio" name="type" value="遅刻" class="mr-1.5 text-indigo-600 focus:ring-indigo-500"> 遅刻
+            </label>
+            <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-700">
+              <input type="radio" name="type" value="早退" class="mr-1.5 text-indigo-600 focus:ring-indigo-500"> 早退
+            </label>
+          </div>
         </div>
 
-        <!-- 対象日付 -->
+        <!-- 対象日 -->
         <div>
-          <label class="block text-slate-700 text-xs font-bold mb-1" for="targetDate">
-            対象日付（何日分か） <span class="text-rose-500">*</span>
-          </label>
+          <label class="block text-xs font-bold text-slate-600 mb-1">対象日 <span class="text-rose-500">*</span></label>
           <input type="date" id="targetDate" required
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
         </div>
 
-        <!-- 連絡区分 -->
+        <!-- 理由分類 -->
         <div>
-          <label class="block text-slate-700 text-xs font-bold mb-1" for="type">
-            区分 <span class="text-rose-500">*</span>
-          </label>
-          <select id="type" required
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm bg-white">
-            <option value="欠席">欠席</option>
-            <option value="遅刻">遅刻</option>
-            <option value="早退">早退</option>
+          <label class="block text-xs font-bold text-slate-600 mb-1">理由分類 <span class="text-rose-500">*</span></label>
+          <select id="reasonCategory" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white">
+            <option value="体調不良（発熱・風邪等）">体調不良（発熱・風邪等）</option>
+            <option value="怪我・通院">怪我・通院</option>
+            <option value="家庭都合・行事">家庭都合・行事</option>
+            <option value="学業・補習・テスト">学業・補習・テスト</option>
+            <option value="その他">その他</option>
           </select>
         </div>
 
-        <!-- 理由・詳細 -->
+        <!-- 詳細理由 -->
         <div>
-          <label class="block text-slate-700 text-xs font-bold mb-1" for="detail">
-            理由・詳細 <span class="text-rose-500">*</span>
-          </label>
-          <textarea id="detail" rows="3" required placeholder="体調不良のため（発熱37.5度）"
-            class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm"></textarea>
+          <label class="block text-xs font-bold text-slate-600 mb-1">詳細理由・メモ</label>
+          <textarea id="reasonDetail" rows="3" placeholder="今朝から38度の熱があるため欠席します。"
+            class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
         </div>
 
         <!-- 送信ボタン -->
         <button type="submit" id="submitBtn"
-          class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-sm">
-          連絡を送信する
+          class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-md flex items-center justify-center">
+          <i class="fa-solid fa-paper-plane mr-2"></i> 連絡を送信する
         </button>
       </form>
-
-      <!-- 送信完了・エラーメッセージ -->
-      <div id="statusMsg" class="mt-4 text-center font-bold text-xs hidden"></div>
     </div>
   </main>
-
-  <!-- フッター -->
-  <footer class="text-center text-xs text-slate-400 mt-8">
-    <p>&copy; 部活動連絡ポータル</p>
-  </footer>
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAar1cL7AwErIJCBalCTIxndvYu7IW3VVc",
@@ -115,48 +127,36 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // デフォルトで今日の日付をセット
-    const today = new Date().toISOString().split("T")[0];
-    document.getElementById("targetDate").value = today;
+    document.getElementById('targetDate').valueAsDate = new Date();
 
-    const form = document.getElementById("absenceForm");
-    const statusMsg = document.getElementById("statusMsg");
-    const submitBtn = document.getElementById("submitBtn");
-
-    form.addEventListener("submit", async (e) => {
+    document.getElementById('absenceForm').addEventListener('submit', (e) => {
       e.preventDefault();
       
-      submitBtn.disabled = true;
-      submitBtn.textContent = "送信中...";
+      const toast = document.getElementById('successToast');
 
-      try {
-        await addDoc(collection(db, "absences"), {
-          name: document.getElementById("name").value,
-          grade: document.getElementById("grade").value || "未設定",
-          targetDate: document.getElementById("targetDate").value,
-          type: document.getElementById("type").value,
-          detail: document.getElementById("detail").value,
-          status: "未確認",
-          createdAt: serverTimestamp()
-        });
+      const data = {
+        name: document.getElementById('studentName').value,
+        grade: document.getElementById('grade').value,
+        type: document.querySelector('input[name="type"]:checked').value,
+        targetDate: document.getElementById('targetDate').value,
+        category: document.getElementById('reasonCategory').value,
+        detail: document.getElementById('reasonDetail').value,
+        status: "未確認",
+        createdAt: new Date().toISOString()
+      };
 
-        statusMsg.textContent = "送信が完了しました！連絡ありがとうございます。";
-        statusMsg.className = "mt-4 text-center font-bold text-xs text-emerald-600 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200";
-        statusMsg.classList.remove("hidden");
-        form.reset();
-        
-        // リセット後も日付は今日に戻す
-        document.getElementById("targetDate").value = today;
+      // 画面上は一瞬でトースト表示＆リセット
+      toast.classList.remove('hidden');
+      document.getElementById('absenceForm').reset();
+      document.getElementById('targetDate').valueAsDate = new Date();
+      
+      setTimeout(() => toast.classList.add('hidden'), 4000);
 
-      } catch (error) {
-        console.error("Error adding document: ", error);
-        statusMsg.textContent = "送信に失敗しました。もう一度お試しください。";
-        statusMsg.className = "mt-4 text-center font-bold text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200";
-        statusMsg.classList.remove("hidden");
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "連絡を送信する";
-      }
+      // バックグラウンドで非同期送信
+      addDoc(collection(db, "absences"), data).catch((err) => {
+        console.error("送信エラー:", err);
+        alert("通信エラーが発生しました。もう一度お試しください。");
+      });
     });
   </script>
 </body>
