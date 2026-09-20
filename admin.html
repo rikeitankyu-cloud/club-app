@@ -3,255 +3,173 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>部活動 欠席・遅刻連絡ポータル - 管理者画面</title>
-  <!-- Tailwind CSS -->
+  <title>欠席連絡管理画面</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 pb-12">
+<body class="bg-slate-100 min-h-screen p-4 md:p-8">
 
-  <!-- ヘッダー -->
-  <header class="bg-indigo-700 text-white p-4 shadow-md">
-    <div class="max-w-4xl mx-auto flex justify-between items-center">
-      <div>
-        <h1 class="text-xl font-bold flex items-center">
-          <i class="fa-solid fa-volleyball mr-2 text-amber-300"></i> 部活動 欠席連絡システム
-        </h1>
-        <p class="text-xs text-indigo-200 mt-0.5">連絡・確認連絡ポータル（管理者用）</p>
-      </div>
-      <button onclick="logout()" id="logoutBtn" class="hidden text-xs bg-indigo-800 hover:bg-indigo-900 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition">
-        <i class="fa-solid fa-right-from-bracket mr-1"></i> ログアウト
-      </button>
-    </div>
-  </header>
+  <!-- ログイン画面 -->
+  <div id="loginScreen" class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-lg mt-10">
+    <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
+      <i class="fa-solid fa-lock mr-2 text-amber-500"></i> 管理者ログイン
+    </h2>
+    <input type="password" id="passInput" placeholder="パスワードを入力"
+      class="w-full px-3 py-2 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <button id="loginBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-lg">
+      ログイン
+    </button>
+  </div>
 
-  <!-- 1. パスワード認証画面 -->
-  <main id="auth-section" class="max-w-md mx-auto mt-12 p-6 bg-white rounded-2xl shadow-md border border-slate-200">
-    <div class="text-center mb-6">
-      <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
-        <i class="fa-solid fa-lock"></i>
-      </div>
-      <h2 class="text-lg font-bold text-slate-800">管理者ログイン</h2>
-      <p class="text-xs text-slate-500 mt-1">状況確認ページを開くにはパスワードが必要です</p>
-    </div>
-
-    <form onsubmit="handleLogin(event)">
-      <div class="mb-4">
-        <input type="password" id="admin-pass" placeholder="パスワードを入力 (初期: 1234)" required
-          class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
-        <p id="error-msg" class="text-red-500 text-xs mt-2 hidden text-center">
-          <i class="fa-solid fa-circle-exclamation mr-1"></i>パスワードが違います
-        </p>
-      </div>
-      <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition shadow-sm">
-        解除して確認する
-      </button>
-    </form>
-  </main>
-
-  <!-- 2. 状況確認メイン画面 -->
-  <main id="admin-content" class="max-w-4xl mx-auto mt-6 px-4 hidden">
+  <!-- 管理画面コンテンツ -->
+  <div id="adminContent" class="max-w-5xl mx-auto hidden space-y-6">
     
-    <!-- ステータスバー -->
-    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-4 py-2.5 rounded-xl mb-6 flex justify-between items-center">
-      <span><i class="fa-solid fa-bolt text-emerald-500 mr-1.5"></i> リアルタイム高速同期モード</span>
-    </div>
+    <!-- ヘッダー＆フィルター -->
+    <div class="bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <h1 class="text-xl font-bold text-slate-800 flex items-center">
+        <i class="fa-solid fa-list-check mr-2 text-blue-600"></i> 欠席・遅刻連絡 一覧
+      </h1>
 
-    <!-- ダッシュボードカード集計 -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
-        <div>
-          <p class="text-xs text-slate-500 font-bold mb-1">本日の欠席</p>
-          <p class="text-2xl font-black text-rose-600" id="statAbsent">0<span class="text-sm font-normal text-slate-600 ml-1">人</span></p>
-        </div>
-        <div class="w-10 h-10 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-lg">
-          <i class="fa-solid fa-user-xmark"></i>
-        </div>
-      </div>
-
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
-        <div>
-          <p class="text-xs text-slate-500 font-bold mb-1">本日の遅刻/早退</p>
-          <p class="text-2xl font-black text-amber-500" id="statLate">0<span class="text-sm font-normal text-slate-600 ml-1">人</span></p>
-        </div>
-        <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-lg">
-          <i class="fa-solid fa-clock"></i>
-        </div>
-      </div>
-
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
-        <div>
-          <p class="text-xs text-slate-500 font-bold mb-1">未確認の連絡</p>
-          <p class="text-2xl font-black text-indigo-600" id="statUnread">0<span class="text-sm font-normal text-slate-600 ml-1">件</span></p>
-        </div>
-        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center text-lg">
-          <i class="fa-solid fa-envelope"></i>
-        </div>
+      <!-- 日付絞り込み機能 -->
+      <div class="flex items-center space-x-2">
+        <label for="filterDate" class="text-sm font-bold text-slate-600 whitespace-nowrap">日付選択:</label>
+        <input type="date" id="filterDate"
+          class="px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button id="showAllBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-3 py-2 rounded-lg font-bold transition">
+          すべて表示
+        </button>
       </div>
     </div>
 
-    <!-- 一覧メインエリア -->
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-      <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
-        <h2 class="text-sm font-bold text-slate-700 flex items-center">
-          <i class="fa-solid fa-list mr-2 text-indigo-600"></i> 届いている連絡一覧
-        </h2>
-        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold" id="totalCount">0件</span>
-      </div>
-
-      <!-- リアルタイムデータリスト -->
-      <div id="data-list" class="space-y-3">
-        <p class="text-center text-slate-400 text-xs py-8"><i class="fa-solid fa-spinner fa-spin mr-1"></i> 読み込み中...</p>
-      </div>
+    <!-- テーブル -->
+    <div class="bg-white rounded-xl shadow-md overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-800 text-white text-sm">
+            <th class="p-3">対象日付</th>
+            <th class="p-3">名前</th>
+            <th class="p-3">区分</th>
+            <th class="p-3">理由</th>
+            <th class="p-3">ステータス</th>
+            <th class="p-3 text-center">操作</th>
+          </tr>
+        </thead>
+        <tbody id="listTable" class="divide-y divide-slate-200 text-sm">
+          <!-- JSで自動挿入 -->
+        </tbody>
+      </table>
     </div>
-  </main>
 
-  <!-- Firebase SDK -->
+  </div>
+
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, query, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyAar1cL7AwErIJCBalCTIxndvYu7IW3VVc",
-      authDomain: "club-app-6b501.firebaseapp.com",
-      projectId: "club-app-6b501",
-      storageBucket: "club-app-6b501.firebasestorage.app",
-      messagingSenderId: "575608909702",
-      appId: "1:575608909702:web:57394e365b76ba27970607",
-      measurementId: "G-9MWZKWSQTX"
+      projectId: "club-app-f9a2f"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const ADMIN_PASSWORD = "1234";
+    const ADMIN_PASSWORD = "1234"; // ★必要に応じて新しいパスワードに変更してください
 
-    // ログイン
-    window.handleLogin = function(event) {
-      event.preventDefault();
-      const inputPass = document.getElementById("admin-pass").value;
-      if (inputPass === ADMIN_PASSWORD) {
-        document.getElementById("auth-section").classList.add("hidden");
-        document.getElementById("admin-content").classList.remove("hidden");
-        document.getElementById("logoutBtn").classList.remove("hidden");
-        startRealtimeListener();
+    const loginScreen = document.getElementById("loginScreen");
+    const adminContent = document.getElementById("adminContent");
+    const passInput = document.getElementById("passInput");
+    const loginBtn = document.getElementById("loginBtn");
+    const listTable = document.getElementById("listTable");
+    const filterDate = document.getElementById("filterDate");
+    const showAllBtn = document.getElementById("showAllBtn");
+
+    let allAbsences = []; // 全データを保持する配列
+
+    // ログイン機能
+    loginBtn.addEventListener("click", () => {
+      if (passInput.value === ADMIN_PASSWORD) {
+        loginScreen.classList.add("hidden");
+        adminContent.classList.remove("hidden");
+        initDataSync();
       } else {
-        document.getElementById("error-msg").classList.remove("hidden");
+        alert("パスワードが違います");
       }
-    };
+    });
 
-    // ログアウト
-    window.logout = function() {
-      document.getElementById("auth-section").classList.remove("hidden");
-      document.getElementById("admin-content").classList.add("hidden");
-      document.getElementById("logoutBtn").classList.add("hidden");
-      document.getElementById("admin-pass").value = "";
-    };
-
-    // リアルタイムデータ受信監視（最新50件まで高速取得）
-    function startRealtimeListener() {
-      const q = query(collection(db, "absences"), limit(50));
+    // 初期化＆リアルタイム同期設定
+    function initDataSync() {
+      const q = query(collection(db, "absences"), orderBy("createdAt", "desc"));
       
       onSnapshot(q, (snapshot) => {
-        const listContainer = document.getElementById("data-list");
-        
-        if (snapshot.empty) {
-          listContainer.innerHTML = `
-            <div class="text-center py-8 text-slate-400">
-              <i class="fa-solid fa-inbox text-3xl mb-2"></i>
-              <p class="text-xs">現在、届いている連絡はありません。</p>
-            </div>`;
-          updateStats([]);
-          return;
-        }
-
-        let docsData = [];
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          data.id = docSnap.id;
-          docsData.push(data);
-        });
-
-        // 日付順にソート（JavaScript側で高速処理）
-        docsData.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-
-        // HTMLを一括作成して高速描画
-        let htmlBuffer = "";
-        docsData.forEach((data) => {
-          const isChecked = data.status === "確認済み";
-          const typeBadge = data.type === "欠席" 
-            ? `<span class="bg-rose-100 text-rose-700 font-bold text-xs px-2 py-0.5 rounded">欠席</span>`
-            : `<span class="bg-amber-100 text-amber-800 font-bold text-xs px-2 py-0.5 rounded">${data.type}</span>`;
-          
-          const statusBadge = isChecked
-            ? `<span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded font-bold">確認済み</span>`
-            : `<span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded font-bold">未確認</span>`;
-
-          const toggleBtn = isChecked
-            ? `<button onclick="toggleStatus('${data.id}', '未確認')" class="text-xs border border-slate-300 text-slate-600 px-2.5 py-1 rounded-lg hover:bg-slate-100 flex items-center">
-                 <i class="fa-solid fa-rotate-left mr-1"></i> 未確認に戻す
-               </button>`
-            : `<button onclick="toggleStatus('${data.id}', '確認済み')" class="text-xs bg-indigo-600 text-white font-bold px-3 py-1 rounded-lg hover:bg-indigo-700 flex items-center shadow-sm">
-                 <i class="fa-solid fa-check mr-1"></i> 確認済みにする
-               </button>`;
-
-          htmlBuffer += `
-            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-              <div class="flex flex-wrap justify-between items-start gap-2 mb-2">
-                <div class="flex items-center gap-2">
-                  ${typeBadge}
-                  <span class="font-bold text-slate-800 text-sm">${data.name} <span class="text-xs text-slate-500 font-normal">(${data.grade})</span></span>
-                  ${statusBadge}
-                </div>
-                <div class="flex items-center gap-2">
-                  ${toggleBtn}
-                  <button onclick="deleteItem('${data.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1">
-                    <i class="fa-solid fa-trash-can"></i>
-                  </button>
-                </div>
-              </div>
-              <p class="text-xs text-slate-500 mb-1">
-                <i class="fa-regular fa-calendar mr-1"></i>対象日: ${data.targetDate} &nbsp; 
-                <i class="fa-solid fa-circle-info mr-1"></i>${data.category}
-              </p>
-              <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-xs text-slate-600">
-                ${data.detail || '（詳細理由の記入なし）'}
-              </div>
-            </div>
-          `;
-        });
-
-        listContainer.innerHTML = htmlBuffer;
-        updateStats(docsData);
+        allAbsences = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        renderTable();
       });
     }
 
-    // ステータス更新（確認済み/未確認）
-    window.toggleStatus = async function(id, newStatus) {
+    // テーブル表示処理（フィルター連動）
+    function renderTable() {
+      listTable.innerHTML = "";
+      const selectedDate = filterDate.value;
+
+      // 日付が指定されている場合は絞り込み、指定がなければ全表示
+      const filtered = selectedDate
+        ? allAbsences.filter(item => item.targetDate === selectedDate)
+        : allAbsences;
+
+      if (filtered.length === 0) {
+        listTable.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">該当するデータがありません</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50 transition";
+
+        const isChecked = item.status === "確認済み";
+        const badgeColor = isChecked ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700";
+
+        tr.innerHTML = `
+          <td class="p-3 font-semibold text-blue-600">${item.targetDate || '未指定'}</td>
+          <td class="p-3 font-bold text-slate-800">${item.name}</td>
+          <td class="p-3"><span class="px-2 py-1 rounded bg-slate-100 font-bold">${item.type}</span></td>
+          <td class="p-3 text-slate-600 max-w-xs truncate">${item.reason}</td>
+          <td class="p-3"><span class="px-2 py-1 rounded text-xs font-bold ${badgeColor}">${item.status}</span></td>
+          <td class="p-3 text-center space-x-2">
+            <button onclick="toggleStatus('${item.id}', '${item.status}')"
+              class="px-3 py-1 rounded text-xs font-bold text-white ${isChecked ? 'bg-slate-500 hover:bg-slate-600' : 'bg-green-600 hover:bg-green-700'}">
+              ${isChecked ? '未確認に戻す' : '確認完了'}
+            </button>
+            <button onclick="deleteItem('${item.id}')"
+              class="px-2 py-1 rounded text-xs font-bold text-red-600 hover:bg-red-50">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        listTable.appendChild(tr);
+      });
+    }
+
+    // 日付フィルターイベント
+    filterDate.addEventListener("change", renderTable);
+    showAllBtn.addEventListener("click", () => {
+      filterDate.value = "";
+      renderTable();
+    });
+
+    // グローバル関数として公開（HTMLボタンのonclick用）
+    window.toggleStatus = async (id, currentStatus) => {
+      const newStatus = currentStatus === "確認済み" ? "未確認" : "確認済み";
       await updateDoc(doc(db, "absences", id), { status: newStatus });
     };
 
-    // 削除処理
-    window.deleteItem = async function(id) {
-      if (confirm("この連絡を削除してもよろしいですか？")) {
+    window.deleteItem = async (id) => {
+      if (confirm("この記録を削除しますか？")) {
         await deleteDoc(doc(db, "absences", id));
       }
     };
-
-    // カウント集計
-    function updateStats(dataList) {
-      const todayStr = new Date().toISOString().split('T')[0];
-      
-      const absentCount = dataList.filter(d => d.type === "欠席" && d.targetDate === todayStr).length;
-      const lateCount = dataList.filter(d => (d.type === "遅刻" || d.type === "早退") && d.targetDate === todayStr).length;
-      const unreadCount = dataList.filter(d => d.status === "未確認").length;
-
-      document.getElementById("statAbsent").innerText = absentCount;
-      document.getElementById("statLate").innerText = lateCount;
-      document.getElementById("statUnread").innerText = unreadCount;
-      document.getElementById("totalCount").innerText = `${dataList.length}件`;
-    }
   </script>
 </body>
 </html>
