@@ -58,9 +58,15 @@
       <div class="flex justify-between items-center mb-4">
         <div class="flex items-center gap-3">
           <h2 id="calendarMonthTitle" class="text-lg font-bold tracking-wide">2026年 9月</h2>
-          <div class="flex items-center bg-indigo-900/80 rounded-lg p-0.5 border border-indigo-700/50">
-            <button onclick="changeMonth(-1)" class="px-3 py-1 text-xs hover:bg-indigo-700 rounded-md transition"><i class="fa-solid fa-chevron-left"></i></button>
-            <button onclick="changeMonth(1)" class="px-3 py-1 text-xs hover:bg-indigo-700 rounded-md transition"><i class="fa-solid fa-chevron-right"></i></button>
+          <div class="flex items-center gap-1.5">
+            <div class="flex items-center bg-indigo-900/85 rounded-lg p-0.5 border border-indigo-700/50">
+              <button onclick="changeMonth(-1)" class="px-2.5 py-1 text-xs hover:bg-indigo-700 rounded-md transition"><i class="fa-solid fa-chevron-left"></i></button>
+              <button onclick="changeMonth(1)" class="px-2.5 py-1 text-xs hover:bg-indigo-700 rounded-md transition"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <!-- 「今日」ボタンをおしゃれに修正 -->
+            <button onclick="goToToday()" class="px-2.5 py-1 text-xs bg-indigo-900/85 hover:bg-indigo-700 text-indigo-200 hover:text-white rounded-lg border border-indigo-700/50 transition font-medium flex items-center gap-1">
+              <i class="fa-solid fa-calendar-day text-indigo-400"></i> 本日
+            </button>
           </div>
         </div>
       </div>
