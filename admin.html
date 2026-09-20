@@ -147,7 +147,7 @@
 
     const ADMIN_PASSWORD = "1234";
     let allFetchedData = []; 
-    let uniqueLatestData = []; // 同日同人の重複を除外した最新データ
+    let uniqueLatestData = []; 
     let currentFilterMode = "absent";
     let currentCalendarDate = new Date();
     let selectedDateStr = formatDateKey(new Date());
@@ -231,10 +231,8 @@
           allFetchedData.push(data);
         });
 
-        // 1. 新しい順に並び替え
         allFetchedData.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
-        // 2. 「同じ対象日(targetDate)」かつ「同じ名前(name)」の組み合わせで、一番最初の1件（最新）だけを残す
         const latestMap = new Map();
         allFetchedData.forEach(item => {
           const key = `${item.targetDate}_${item.name}`;
@@ -261,7 +259,10 @@
 
       const gridContainer = document.getElementById("calendarGrid");
       let html = "";
-      // カレンダーのマーク用には「重複除外された最新データ」の日付を使う
+      
+      // 未確認の連絡がある日付のセットを作成
+      const unreadDates = new Set(uniqueLatestData.filter(d => d.status === "未確認").map(d => d.targetDate));
+      // すべての連絡がある日付のセットを作成
       const datesWithReports = new Set(uniqueLatestData.map(d => d.targetDate));
 
       for (let i = firstDayIndex; i > 0; i--) {
@@ -276,6 +277,7 @@
 
         const isSelected = (thisDateStr === selectedDateStr);
         const isToday = (thisDateStr === formatDateKey(new Date()));
+        const hasUnread = unreadDates.has(thisDateStr);
         const hasReport = datesWithReports.has(thisDateStr);
 
         let btnClass = "py-1.5 rounded-xl transition flex flex-col items-center justify-center relative ";
@@ -287,7 +289,13 @@
           btnClass += "hover:bg-indigo-900 text-indigo-100";
         }
 
-        let indicator = hasReport ? `<span class="w-1.5 h-1.5 ${isSelected ? 'bg-amber-300' : 'bg-rose-400'} rounded-full mt-0.5"></span>` : `<span class="w-1.5 h-1.5 opacity-0 mt-0.5"></span>`;
+        // 未確認がある日は黄色の目立つドット、確認済みの連絡のみの日は通常のインジケーター
+        let indicator = `<span class="w-1.5 h-1.5 opacity-0 mt-0.5"></span>`;
+        if (hasUnread) {
+          indicator = `<span class="w-2 h-2 bg-amber-300 rounded-full mt-0.5 shadow-[0_0_6px_#fde047]"></span>`;
+        } else if (hasReport) {
+          indicator = `<span class="w-1.5 h-1.5 bg-rose-400 rounded-full mt-0.5"></span>`;
+        }
 
         html += `
           <button onclick="selectDate('${thisDateStr}')" class="${btnClass}">
@@ -306,7 +314,6 @@
 
       let filteredData = [];
 
-      // 絞り込みには重複除外済みの `uniqueLatestData` を使用する
       if (currentFilterMode === "absent") {
         filteredData = uniqueLatestData.filter(d => d.targetDate === selectedDateStr && d.type === "欠席");
         listTitle.innerHTML = `<i class="fa-solid fa-list mr-2 text-indigo-600"></i> 選択日の欠席一覧（${selectedDateStr}）`;
@@ -347,6 +354,11 @@
           ? `<span class="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded font-bold">確認済み</span>`
           : `<span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded font-bold">未確認</span>`;
 
+        // 未確認のカードは白っぽく(bg-white shadow-sm)、確認済みは薄いグレーにして区別
+        const cardStyle = isChecked 
+          ? "p-4 rounded-xl border border-slate-200 bg-slate-50/50" 
+          : "p-4 rounded-xl border-2 border-indigo-200 bg-white shadow-sm";
+
         const toggleBtn = isChecked
           ? `<button onclick="toggleStatus('${data.id}', '未確認')" class="text-xs border border-slate-300 text-slate-600 px-2.5 py-1 rounded-lg hover:bg-slate-100 flex items-center">
                <i class="fa-solid fa-rotate-left mr-1"></i> 未確認に戻す
@@ -356,7 +368,7 @@
              </button>`;
 
         htmlBuffer += `
-          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+          <div class="${cardStyle}">
             <div class="flex flex-wrap justify-between items-start gap-2 mb-2">
               <div class="flex items-center gap-2">
                 ${typeBadge}
@@ -374,7 +386,7 @@
               <i class="fa-regular fa-calendar mr-1"></i>対象日: ${data.targetDate} &nbsp; 
               <i class="fa-solid fa-circle-info mr-1"></i>${data.category}
             </p>
-            <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-xs text-slate-600">
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs text-slate-600">
               ${data.detail || '（詳細理由の記入なし）'}
             </div>
           </div>
