@@ -55,7 +55,7 @@
     
     <!-- ステータスバー -->
     <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-4 py-2.5 rounded-xl mb-6 flex justify-between items-center">
-      <span><i class="fa-solid fa-wifi text-emerald-500 mr-1.5"></i> Firebase リアルタイムデータベース接続中</span>
+      <span><i class="fa-solid fa-bolt text-emerald-500 mr-1.5"></i> リアルタイム高速同期モード</span>
     </div>
 
     <!-- ダッシュボードカード集計 -->
@@ -102,15 +102,15 @@
 
       <!-- リアルタイムデータリスト -->
       <div id="data-list" class="space-y-3">
-        <p class="text-center text-slate-400 text-xs py-8">読み込み中...</p>
+        <p class="text-center text-slate-400 text-xs py-8"><i class="fa-solid fa-spinner fa-spin mr-1"></i> 読み込み中...</p>
       </div>
     </div>
   </main>
 
-  <!-- Firebase SDK & 処理Script -->
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, query, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAar1cL7AwErIJCBalCTIxndvYu7IW3VVc",
@@ -149,14 +149,13 @@
       document.getElementById("admin-pass").value = "";
     };
 
-    // リアルタイムデータ受信監視
+    // リアルタイムデータ受信監視（最新50件まで高速取得）
     function startRealtimeListener() {
-      const q = query(collection(db, "absences"), orderBy("createdAt", "desc"));
+      const q = query(collection(db, "absences"), limit(50));
       
       onSnapshot(q, (snapshot) => {
         const listContainer = document.getElementById("data-list");
-        listContainer.innerHTML = "";
-
+        
         if (snapshot.empty) {
           listContainer.innerHTML = `
             <div class="text-center py-8 text-slate-400">
@@ -172,11 +171,14 @@
           const data = docSnap.data();
           data.id = docSnap.id;
           docsData.push(data);
+        });
 
-          // カードエレメント作成
-          const card = document.createElement("div");
-          card.className = "p-4 rounded-xl border border-slate-200 bg-slate-50/50";
+        // 日付順にソート（JavaScript側で高速処理）
+        docsData.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
+        // HTMLを一括作成して高速描画
+        let htmlBuffer = "";
+        docsData.forEach((data) => {
           const isChecked = data.status === "確認済み";
           const typeBadge = data.type === "欠席" 
             ? `<span class="bg-rose-100 text-rose-700 font-bold text-xs px-2 py-0.5 rounded">欠席</span>`
@@ -194,31 +196,33 @@
                  <i class="fa-solid fa-check mr-1"></i> 確認済みにする
                </button>`;
 
-          card.innerHTML = `
-            <div class="flex flex-wrap justify-between items-start gap-2 mb-2">
-              <div class="flex items-center gap-2">
-                ${typeBadge}
-                <span class="font-bold text-slate-800 text-sm">${data.name} <span class="text-xs text-slate-500 font-normal">(${data.grade})</span></span>
-                ${statusBadge}
+          htmlBuffer += `
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+              <div class="flex flex-wrap justify-between items-start gap-2 mb-2">
+                <div class="flex items-center gap-2">
+                  ${typeBadge}
+                  <span class="font-bold text-slate-800 text-sm">${data.name} <span class="text-xs text-slate-500 font-normal">(${data.grade})</span></span>
+                  ${statusBadge}
+                </div>
+                <div class="flex items-center gap-2">
+                  ${toggleBtn}
+                  <button onclick="deleteItem('${data.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
               </div>
-              <div class="flex items-center gap-2">
-                ${toggleBtn}
-                <button onclick="deleteItem('${data.id}')" class="text-slate-400 hover:text-rose-600 text-xs p-1">
-                  <i class="fa-solid fa-trash-can"></i>
-                </button>
+              <p class="text-xs text-slate-500 mb-1">
+                <i class="fa-regular fa-calendar mr-1"></i>対象日: ${data.targetDate} &nbsp; 
+                <i class="fa-solid fa-circle-info mr-1"></i>${data.category}
+              </p>
+              <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-xs text-slate-600">
+                ${data.detail || '（詳細理由の記入なし）'}
               </div>
-            </div>
-            <p class="text-xs text-slate-500 mb-1">
-              <i class="fa-regular fa-calendar mr-1"></i>対象日: ${data.targetDate} &nbsp; 
-              <i class="fa-solid fa-circle-info mr-1"></i>${data.category}
-            </p>
-            <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-xs text-slate-600">
-              ${data.detail || '（詳細理由の記入なし）'}
             </div>
           `;
-          listContainer.appendChild(card);
         });
 
+        listContainer.innerHTML = htmlBuffer;
         updateStats(docsData);
       });
     }
@@ -235,7 +239,7 @@
       }
     };
 
-    // カード数字の自動集計
+    // カウント集計
     function updateStats(dataList) {
       const todayStr = new Date().toISOString().split('T')[0];
       
