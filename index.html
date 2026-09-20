@@ -68,15 +68,15 @@
             <label class="block text-xs font-bold text-slate-700 mb-1">連絡種別 <span class="text-rose-500">*</span></label>
             <div class="grid grid-cols-3 gap-2">
               <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 transition has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700">
-                <input type="radio" name="type" value="欠席" checked class="hidden" onchange="toggleType()">
+                <input type="radio" name="type" value="欠席" checked class="hidden">
                 <span class="text-xs font-bold">欠席</span>
               </label>
               <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 transition has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700">
-                <input type="radio" name="type" value="遅刻" class="hidden" onchange="toggleType()">
+                <input type="radio" name="type" value="遅刻" class="hidden">
                 <span class="text-xs font-bold">遅刻</span>
               </label>
               <label class="border border-slate-200 rounded-xl p-2.5 text-center cursor-pointer hover:bg-slate-50 transition has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-600 has-[:checked]:text-indigo-700">
-                <input type="radio" name="type" value="早退" class="hidden" onchange="toggleType()">
+                <input type="radio" name="type" value="早退" class="hidden">
                 <span class="text-xs font-bold">早退</span>
               </label>
             </div>
@@ -158,7 +158,7 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addCollection, addDoc, query, where, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, where, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -179,10 +179,8 @@
     let currentUser = null;
     let unsubscribeHistory = null;
 
-    // 初期日付を今日にセット
     document.getElementById("targetDate").valueAsDate = new Date();
 
-    // ログイン状態の監視
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
       const headerArea = document.getElementById("auth-header-area");
@@ -190,7 +188,6 @@
       const mainArea = document.getElementById("main-content-area");
 
       if (user) {
-        // ログイン中の表示
         headerArea.innerHTML = `
           <div class="flex items-center gap-2">
             <span class="text-xs text-indigo-100 hidden sm:inline">${user.displayName || user.email}</span>
@@ -202,15 +199,12 @@
         loginCard.classList.add("hidden");
         mainArea.classList.remove("hidden");
 
-        // 自動で名前欄にGoogleの表示名を入れる（未入力の場合）
         if (user.displayName && !document.getElementById("name").value) {
           document.getElementById("name").value = user.displayName;
         }
 
-        // 自分の送信履歴をリアルタイム取得開始
         startMyHistoryListener(user.uid);
       } else {
-        // 未ログインの表示
         headerArea.innerHTML = `
           <button onclick="loginWithGoogle()" class="text-xs bg-white text-indigo-600 font-bold px-3 py-1.5 rounded-lg shadow hover:bg-indigo-50 transition flex items-center">
             <i class="fa-brands fa-google mr-1.5"></i> ログイン
@@ -257,7 +251,6 @@
       }
     };
 
-    // 連絡送信
     window.submitAbsence = async function(event) {
       event.preventDefault();
       if (!currentUser) {
@@ -278,7 +271,7 @@
 
       try {
         await addDoc(collection(db, "absences"), {
-          uid: currentUser.uid, // ログインしているユーザーのIDを保存
+          uid: currentUser.uid,
           userEmail: currentUser.email,
           type,
           targetDate,
@@ -303,10 +296,9 @@
 
     window.closeModal = function() {
       document.getElementById("successModal").classList.add("hidden");
-      switchTab('history'); // 送信後に自動で履歴タブへ切り替え
+      switchTab('history');
     };
 
-    // 自分の送信履歴を監視
     function startMyHistoryListener(uid) {
       const q = query(collection(db, "absences"), where("uid", "==", uid));
       
@@ -319,7 +311,6 @@
           items.push(d);
         });
 
-        // 新しい順に並び替え
         items.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
         if (items.length === 0) {
@@ -367,7 +358,6 @@
       });
     }
 
-    // 連絡の取り消し（削除）
     window.cancelMyReport = async function(id, status) {
       if (status === "確認済み") {
         if (!confirm("この連絡はすでに先生が確認済みです。本当に取り消しますか？")) {
