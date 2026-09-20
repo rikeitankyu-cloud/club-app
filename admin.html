@@ -257,7 +257,18 @@
       let html = "";
       
       const unreadDates = new Set(uniqueLatestData.filter(d => d.status === "未確認").map(d => d.targetDate));
-      const datesWithReports = new Set(uniqueLatestData.map(d => d.targetDate));
+      
+      const dateTypesMap = {};
+      uniqueLatestData.forEach(d => {
+        if (!dateTypesMap[d.targetDate]) {
+          dateTypesMap[d.targetDate] = { hasAbsent: false, hasLateOrEarly: false };
+        }
+        if (d.type === "欠席") {
+          dateTypesMap[d.targetDate].hasAbsent = true;
+        } else if (d.type === "遅刻" || d.type === "早退") {
+          dateTypesMap[d.targetDate].hasLateOrEarly = true;
+        }
+      });
 
       for (let i = firstDayIndex; i > 0; i--) {
         const dNum = prevLastDay - i + 1;
@@ -272,24 +283,27 @@
         const isSelected = (thisDateStr === selectedDateStr);
         const isToday = (thisDateStr === formatDateKey(new Date()));
         const hasUnread = unreadDates.has(thisDateStr);
-        const hasReport = datesWithReports.has(thisDateStr);
+        const dayInfo = dateTypesMap[thisDateStr];
 
         let btnClass = "py-1.5 rounded-xl transition flex flex-col items-center justify-center relative ";
         if (isSelected) {
           btnClass += "bg-indigo-600 text-white font-bold shadow-md scale-105 z-10";
         } else if (hasUnread) {
-          btnClass += "bg-[#e6e6fa] text-slate-900 font-bold shadow-sm";
+          btnClass += "bg-[#e6e6fa] text-slate-900 font-bold shadow-sm"; // 未確認がある日の背景色変更
         } else if (isToday) {
           btnClass += "bg-indigo-800/80 text-white font-bold border border-indigo-400/40";
         } else {
           btnClass += "hover:bg-indigo-900 text-indigo-100";
         }
 
+        // ドットの出し分け（欠席＝赤、遅刻早退＝黄）
         let indicator = `<span class="w-1.5 h-1.5 opacity-0 mt-0.5"></span>`;
-        if (hasUnread) {
-          indicator = `<span class="w-1.5 h-1.5 bg-rose-600 rounded-full mt-0.5"></span>`;
-        } else if (hasReport) {
-          indicator = `<span class="w-1.5 h-1.5 bg-rose-400 rounded-full mt-0.5"></span>`;
+        if (dayInfo) {
+          if (dayInfo.hasAbsent) {
+            indicator = `<span class="w-1.5 h-1.5 bg-rose-500 rounded-full mt-0.5"></span>`;
+          } else if (dayInfo.hasLateOrEarly) {
+            indicator = `<span class="w-1.5 h-1.5 bg-amber-400 rounded-full mt-0.5"></span>`;
+          }
         }
 
         html += `
