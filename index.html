@@ -4,6 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>部活動 欠席・遅刻連絡ポータル</title>
+  <!-- LINE内ブラウザを検知して外部ブラウザに飛ばすスクリプト -->
+  <script>
+    (function() {
+      const ua = navigator.userAgent.toLowerCase();
+      // LINEアプリ内のブラウザかどうかを判定
+      if (ua.indexOf('line') !== -1) {
+        const currentUrl = window.location.href;
+        // iOS（iPhone）の場合
+        if (ua.indexOf('iphone') !== -1 || ua.indexOf('ipad') !== -1) {
+          // Safariで開かせるためのハック（リンクをlocation.hrefで再読み込み等）
+          // ※環境によっては ?openExternalBrowser=1 を付与すると外部ブラウザを強制できる場合があります
+          if (currentUrl.indexOf('openExternalBrowser=1') === -1) {
+            const separator = currentUrl.indexOf('?') !== -1 ? '&' : '?';
+            window.location.href = currentUrl + separator + 'openExternalBrowser=1';
+          }
+        } else {
+          // Androidなどの場合（Chromeで強制的に開くIntentスキーム）
+          location.href = 'intent://' + currentUrl.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end;';
+        }
+      }
+    })();
+  </script>
+  
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome -->
